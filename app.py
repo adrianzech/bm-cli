@@ -32,9 +32,9 @@ def zip():
 
     try:
         zipit(folders, filename)
-        return("Created archive")
+        print("Created archive")
     except:
-        return("Failed to create archive.")
+        print("Failed to create archive.")
 
 
 def upload():
