@@ -1,3 +1,4 @@
+import os
 from ftplib import FTP
 
 host = "159.69.90.146"
@@ -9,6 +10,8 @@ filename = "backup.zip"
 
 ftp = FTP(host)
 print(ftp.getwelcome())
+
+os.remove(filename)
 
 try:
     ftp.login(username, password)
