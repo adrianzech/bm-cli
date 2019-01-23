@@ -2,6 +2,7 @@ import os
 import sys
 from ftplib import FTP
 import zipfile
+import datetime
 
 host = "159.69.90.146"
 username = "kbm"
@@ -14,6 +15,13 @@ folders = [
     "data/addons",
     "data/userdata"]
 
+build_name = "DanielBuild"
+build_version = "1.42"
+timestamp = "{0:%Y%m%d_%H%M}".format(datetime.datetime.now())
+kodi_version = "17.6"
+
+filename = f"{build_name}_v{build_version}_{timestamp}_v{kodi_version}.zip"
+
 menu = {}
 menu["0"] = "Exit"
 menu["1"] = "Backup"
@@ -21,27 +29,6 @@ menu["2"] = "Upload"
 menu["3"] = "Download"
 menu["4"] = "Delete Server file"
 menu["5"] = "Delete locale file"
-
-
-def backup():
-    def zipdir(path, ziph):
-        for root, dirs, files in os.walk(path):
-            for file in files:
-                ziph.write(os.path.join(root, file),
-                           os.path.relpath(os.path.join(root, file),
-                                           os.path.join(path, "..")))
-
-    def zipit(dir_list, zip_name):
-        zipf = zipfile.ZipFile(zip_name, "w", zipfile.ZIP_DEFLATED)
-        for dir in dir_list:
-            zipdir(dir, zipf)
-        zipf.close()
-
-    try:
-        zipit(folders, filename)
-        print("Created archive")
-    except:
-        print("Failed to create archive.")
 
 
 def zip():
