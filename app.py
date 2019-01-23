@@ -1,15 +1,14 @@
 import os
 import sys
-from ftplib import FTP
 import zipfile
 import datetime
+from ftplib import FTP
 
 host = "159.69.90.146"
 username = "kbm"
 password = "underwolf99912"
 
 path = "/"
-filename = "backup.zip"
 
 folders = [
     "data/addons",
@@ -22,21 +21,23 @@ kodi_version = "17.6"
 
 filename = f"{build_name}_v{build_version}_{timestamp}_v{kodi_version}.zip"
 
-menu = {}
-menu["0"] = "Exit"
-menu["1"] = "List local builds"
-menu["2"] = "List server builds"
-menu["3"] = "Backup"
-menu["4"] = "Upload"
-menu["5"] = "Download"
-menu["6"] = "Delete local file"
-menu["7"] = "Delete server file"
 
 build_list = []
 build_menu = {}
 
 
 def start_menu():
+    menu = {}
+
+    menu["0"] = "Exit"
+    menu["1"] = "List local builds"
+    menu["2"] = "List server builds"
+    menu["3"] = "Backup"
+    menu["4"] = "Upload"
+    menu["5"] = "Download"
+    menu["6"] = "Delete local file"
+    menu["7"] = "Delete server file"
+
     print("\n")
     for entry in menu:
         print(entry, menu[entry])
