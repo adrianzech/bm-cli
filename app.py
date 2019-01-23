@@ -1,5 +1,6 @@
 import os
 from ftplib import FTP
+import zipfile
 
 host = "159.69.90.146"
 username = "kbm"
@@ -8,12 +9,32 @@ password = "underwolf99912"
 path = "/"
 filename = "backup.zip"
 
+folders = [
+    "data/addons",
+    "data/userdata"]
+
 option = input("Enter number: ")
 
 
 def zip():
-    # Soon™
-    return
+    def zipdir(path, ziph):
+        for root, dirs, files in os.walk(path):
+            for file in files:
+                ziph.write(os.path.join(root, file),
+                           os.path.relpath(os.path.join(root, file),
+                                           os.path.join(path, "..")))
+
+    def zipit(dir_list, zip_name):
+        zipf = zipfile.ZipFile(zip_name, "w", zipfile.ZIP_DEFLATED)
+        for dir in dir_list:
+            zipdir(dir, zipf)
+        zipf.close()
+
+    try:
+        zipit(folders, filename)
+        return("Created archive")
+    except:
+        return("Failed to create archive.")
 
 
 def upload():
