@@ -1,4 +1,5 @@
 import os
+import sys
 from ftplib import FTP
 import zipfile
 
@@ -13,7 +14,12 @@ folders = [
     "data/addons",
     "data/userdata"]
 
-option = input("Enter number: ")
+menu = {}
+menu["0"] = "Exit"
+menu["1"] = "Backup"
+menu["2"] = "Upload"
+menu["3"] = "Download"
+menu["4"] = "Delete"
 
 
 def backup():
@@ -117,8 +123,20 @@ def delete():
         print("Failed to delete file")
 
 
-option = {0: zip,
-          1: upload,
-          2: download,
-          3: delete,
-          }
+while True:
+    for entry in menu:
+        print(entry, menu[entry])
+
+    selection = input("Please Select: ")
+    if selection == "0":
+        sys.exit()
+    elif selection == "1":
+        zip()
+    elif selection == "2":
+        upload()
+    elif selection == "3":
+        download()
+    elif selection == "4":
+        delete()
+    else:
+        print("Unknown Option Selected!")
