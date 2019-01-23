@@ -19,7 +19,8 @@ menu["0"] = "Exit"
 menu["1"] = "Backup"
 menu["2"] = "Upload"
 menu["3"] = "Download"
-menu["4"] = "Delete"
+menu["4"] = "Delete Server file"
+menu["5"] = "Delete locale file"
 
 
 def backup():
@@ -102,11 +103,9 @@ def download():
         print("Failed to download file")
 
 
-def delete():
+def delete_server_file():
     ftp = FTP(host)
     print(ftp.getwelcome())
-
-    os.remove(filename)
 
     try:
         ftp.login(username, password)
@@ -118,16 +117,28 @@ def delete():
         ftp.cwd(path)
         ftp.delete(filename)
         ftp.quit()
-        print("Deleted file.")
+        print("Deleted server file.")
     except:
-        print("Failed to delete file")
+        print("Failed to delete server file.")
+
+
+def delete_local_file():
+    try:
+        os.remove(filename)
+        print("Deleted local file.")
+    except:
+        print("Failed to delete local file.")
 
 
 while True:
+    print("\n")
     for entry in menu:
         print(entry, menu[entry])
+    print("\n")
 
     selection = input("Please Select: ")
+    print("\n")
+
     if selection == "0":
         sys.exit()
     elif selection == "1":
@@ -137,6 +148,8 @@ while True:
     elif selection == "3":
         download()
     elif selection == "4":
-        delete()
+        delete_server_file()
+    elif selection == "5":
+        delete_local_file()
     else:
         print("Unknown Option Selected!")
