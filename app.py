@@ -4,22 +4,11 @@ import shutil
 import pathlib
 import zipfile
 import datetime
+import getpass
+import configparser
 from ftplib import FTP
 
-host = "159.69.90.146"
-username = "kbm"
-password = "underwolf99912"
-
-# region ftp login
-ftp = FTP(host)
-
-try:
-    ftp.login(username, password)
-except:
-    print("Failed to login.\n")
-
-ftp.cwd("/")
-# endregion
+config = configparser.ConfigParser()
 
 # region settings
 data_folder = "data"
@@ -30,7 +19,7 @@ folders = [
 build_name = "AdrianBuild"
 build_version = "1.42"
 timestamp = "{0:%Y%m%d_%H%M}".format(datetime.datetime.now())
-kodi_version = "17.62"
+kodi_version = "17.6"
 # endregion
 
 # region menu
@@ -45,17 +34,78 @@ menu["5"] = "Upload"
 menu["6"] = "Download"
 menu["7"] = "Delete local file"
 menu["8"] = "Delete server file"
+menu["9"] = "Change ftp settings"
 # endregion
 
 
+def main():
+    check_config()
+
+    config.read_file(open("config.cfg"))
+
+    if config["ftp"]["host"] == "" or config["ftp"]["username"] == "" or config["ftp"]["password"] == "":
+        setup()
+    else:
+        ftp_login()
+
+    while True:
+        start_menu()
+
+
+def write_default_config():
+    config["ftp"] = {"host": "",
+                     "username": "",
+                     "password": ""}
+
+    with open("config.cfg", "w") as configfile:
+        config.write(configfile)
+
+
+def check_config():
+    if not os.path.isfile("config.cfg"):
+        print("\nMissing config file, please follow the setup wizard.")
+        write_default_config()
+
+    if os.stat("config.cfg").st_size == 0:
+        print("\nConfig file is empty, please follow the setup wizard.")
+        write_default_config()
+
+
+def setup():
+    config["ftp"]["host"] = input("\nEnter ftp host: ")
+    config["ftp"]["username"] = input("Enter ftp username: ")
+    config["ftp"]["password"] = getpass.getpass("Enter ftp password: ")
+
+    with open("config.cfg", "w") as configfile:
+        config.write(configfile)
+
+    main()
+
+
+def ftp_login():
+    try:
+        ftp = FTP(config["ftp"]["host"])
+    except:
+        print("\nFailed to reach host, please update your ftp settings.\n")
+        setup()
+
+    try:
+        ftp.login(config["ftp"]["username"], config["ftp"]["password"])
+    except:
+        print("\nFailed to login, please update your ftp settings.\n")
+        setup()
+
+    ftp.cwd("/")
+
+
 def start_menu():
+    print("\n")
     for entry in menu:
         print(entry, menu[entry])
 
     selection = input("\nPlease Select: ")
 
     if selection == "0":
-        ftp.quit()
         sys.exit()
     elif selection == "1":
         list_local_builds()
@@ -73,6 +123,8 @@ def start_menu():
         delete_local_file()
     elif selection == "8":
         delete_server_file()
+    elif selection == "9":
+        setup()
     else:
         print("\nUnknown Option Selected!\n")
 
@@ -133,7 +185,6 @@ def extract(build):
     try:
         zipf = zipfile.ZipFile(build, "r")
         zipf.extractall(data_folder)
-        zipf.close()
         print("Restored files\n")
     except:
         print("Failed to restore files\n")
@@ -153,11 +204,10 @@ def backup():
         zipf = zipfile.ZipFile(zip_name, "w", zipfile.ZIP_DEFLATED)
         for dir in dir_list:
             zipdir(dir, zipf)
-        zipf.close()
 
     try:
         zipit(folders, filename)
-        print("\nCreated archive\n")
+        print(f"\nCreated archive: {filename}\n")
     except:
         print("\nFailed to create archive\n")
 
@@ -265,5 +315,5 @@ def delete_server_file():
             print("\nFailed to delete server file\n")
 
 
-while True:
-    start_menu()
+if __name__ == "__main__":
+    main()
