@@ -144,7 +144,7 @@ def upload():
     print("Press \"0\" to go back.")
     selection = input("\nPlease Select: ")
 
-    build = build_list[int(selection)]
+    build = build_list[int(selection) - 1]
 
     if selection == "0":
         return
@@ -162,7 +162,7 @@ def download():
     print("Press \"0\" to go back.")
     selection = input("\nPlease Select: ")
 
-    build = build_list[int(selection)]
+    build = build_list[int(selection) - 1]
 
     if selection == "0":
         return
@@ -180,7 +180,7 @@ def delete_local_file():
     print("Press \"0\" to go back.")
     selection = input("\nPlease Select: ")
 
-    build = build_list[int(selection)]
+    build = build_list[int(selection) - 1]
 
     if selection == "0":
         return
@@ -198,7 +198,7 @@ def delete_server_file():
     print("Press \"0\" to go back.")
     selection = input("\nPlease Select: ")
 
-    build = build_list[int(selection)]
+    build = build_list[int(selection) - 1]
 
     if selection == "0":
         return
