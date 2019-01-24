@@ -155,15 +155,20 @@ def restore():
         return
     else:
         try:
-            zipf = zipfile.ZipFile(build, "r", zipfile.ZIP_DEFLATED)
+            if len(os.listdir(data_folder)) != 0:
+                for dir in os.listdir(data_folder):
+                    shutil.rmtree(f"{data_folder}/{dir}")
+            print("\nDeleted files")
+        except:
+            print("\nFailed to delete files")
+
+        try:
+            zipf = zipfile.ZipFile(build, "r")
             zipf.extractall(data_folder)
             zipf.close()
-            print("\nRestored file\n")
+            print("Restored files\n")
         except:
-            print("\nFailed to restore file\n")
-
-    for dir in folders:
-        shutil.rmtree(dir)
+            print("Failed to restore files\n")
 
 
 def upload():
