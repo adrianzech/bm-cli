@@ -1,5 +1,6 @@
 import os
 import sys
+import shutil
 import zipfile
 import datetime
 from ftplib import FTP
@@ -20,6 +21,7 @@ ftp.cwd("/")
 # endregion
 
 # region settings
+data_folder = "data"
 folders = [
     "data/addons",
     "data/userdata"]
@@ -37,10 +39,11 @@ menu["0"] = "Exit"
 menu["1"] = "List local builds"
 menu["2"] = "List server builds"
 menu["3"] = "Backup"
-menu["4"] = "Upload"
-menu["5"] = "Download"
-menu["6"] = "Delete local file"
-menu["7"] = "Delete server file"
+menu["4"] = "Restore"
+menu["5"] = "Upload"
+menu["6"] = "Download"
+menu["7"] = "Delete local file"
+menu["8"] = "Delete server file"
 # endregion
 
 
@@ -60,12 +63,14 @@ def start_menu():
     elif selection == "3":
         backup()
     elif selection == "4":
-        upload()
+        restore()
     elif selection == "5":
-        download()
+        upload()
     elif selection == "6":
-        delete_local_file()
+        download()
     elif selection == "7":
+        delete_local_file()
+    elif selection == "8":
         delete_server_file()
     else:
         print("\nUnknown Option Selected!\n")
@@ -136,6 +141,29 @@ def backup():
         print("\nCreated archive\n")
     except:
         print("\nFailed to create archive\n")
+
+
+def restore():
+    build_list = list_local_builds()
+
+    print("Press \"0\" to go back.")
+    selection = input("\nPlease Select: ")
+
+    build = build_list[int(selection) - 1]
+
+    if selection == "0":
+        return
+    else:
+        try:
+            zipf = zipfile.ZipFile(build, "r", zipfile.ZIP_DEFLATED)
+            zipf.extractall(data_folder)
+            zipf.close()
+            print("\nRestored file\n")
+        except:
+            print("\nFailed to restore file\n")
+
+    for dir in folders:
+        shutil.rmtree(dir)
 
 
 def upload():
