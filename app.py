@@ -1,6 +1,7 @@
 import os
 import sys
 import shutil
+import pathlib
 import zipfile
 import datetime
 from ftplib import FTP
@@ -29,7 +30,7 @@ folders = [
 build_name = "AdrianBuild"
 build_version = "1.42"
 timestamp = "{0:%Y%m%d_%H%M}".format(datetime.datetime.now())
-kodi_version = "17.6"
+kodi_version = "17.62"
 # endregion
 
 # region menu
@@ -120,6 +121,24 @@ def list_server_builds():
     return(build_list)
 
 
+def extract(build):
+    try:
+        if len(os.listdir(data_folder)) != 0:
+            for dir in os.listdir(data_folder):
+                shutil.rmtree(f"{data_folder}/{dir}")
+                print("\nDeleted files")
+    except:
+        print("\nFailed to delete files")
+
+    try:
+        zipf = zipfile.ZipFile(build, "r")
+        zipf.extractall(data_folder)
+        zipf.close()
+        print("Restored files\n")
+    except:
+        print("Failed to restore files\n")
+
+
 def backup():
     filename = f"{build_name}_v{build_version}_{timestamp}_v{kodi_version}.zip"
 
@@ -151,24 +170,27 @@ def restore():
 
     build = build_list[int(selection) - 1]
 
+    parsed_string = pathlib.Path(build).stem.split("_")
+
+    try:
+        _kodi_version = parsed_string[4]
+    except:
+        print("\nFile doesn't use valid naming scheme\n")
+        return
+
     if selection == "0":
         return
     else:
-        try:
-            if len(os.listdir(data_folder)) != 0:
-                for dir in os.listdir(data_folder):
-                    shutil.rmtree(f"{data_folder}/{dir}")
-            print("\nDeleted files")
-        except:
-            print("\nFailed to delete files")
-
-        try:
-            zipf = zipfile.ZipFile(build, "r")
-            zipf.extractall(data_folder)
-            zipf.close()
-            print("Restored files\n")
-        except:
-            print("Failed to restore files\n")
+        if _kodi_version == f"v{kodi_version}":
+            extract(build)
+        else:
+            print("\nWrong Kodi version\n")
+            selection = input(
+                "Are you sure you want to restore the build? (y, n): ")
+            if selection == "y":
+                extract(build)
+            elif selection == "n":
+                return
 
 
 def upload():
