@@ -8,8 +8,18 @@ host = "159.69.90.146"
 username = "kbm"
 password = "underwolf99912"
 
-path = "/"
+# region ftp login
+ftp = FTP(host)
 
+try:
+    ftp.login(username, password)
+except:
+    print("Failed to login.\n")
+
+ftp.cwd("/")
+# endregion
+
+# region settings
 folders = [
     "data/addons",
     "data/userdata"]
@@ -18,42 +28,37 @@ build_name = "AdrianBuild"
 build_version = "1.42"
 timestamp = "{0:%Y%m%d_%H%M}".format(datetime.datetime.now())
 kodi_version = "17.6"
+# endregion
 
-filename = f"{build_name}_v{build_version}_{timestamp}_v{kodi_version}.zip"
+# region menu
+menu = {}
 
-
-build_list = []
-build_menu = {}
+menu["0"] = "Exit"
+menu["1"] = "List local builds"
+menu["2"] = "List server builds"
+menu["3"] = "Backup"
+menu["4"] = "Upload"
+menu["5"] = "Download"
+menu["6"] = "Delete local file"
+menu["7"] = "Delete server file"
+# endregion
 
 
 def start_menu():
-    menu = {}
-
-    menu["0"] = "Exit"
-    menu["1"] = "List local builds"
-    menu["2"] = "List server builds"
-    menu["3"] = "Backup"
-    menu["4"] = "Upload"
-    menu["5"] = "Download"
-    menu["6"] = "Delete local file"
-    menu["7"] = "Delete server file"
-
-    print("\n")
     for entry in menu:
         print(entry, menu[entry])
-    print("\n")
 
-    selection = input("Please Select: ")
-    print("\n")
+    selection = input("\nPlease Select: ")
 
     if selection == "0":
+        ftp.quit()
         sys.exit()
     elif selection == "1":
         list_local_builds()
     elif selection == "2":
         list_server_builds()
     elif selection == "3":
-        zip()
+        backup()
     elif selection == "4":
         upload()
     elif selection == "5":
@@ -63,68 +68,61 @@ def start_menu():
     elif selection == "7":
         delete_server_file()
     else:
-        print("Unknown Option Selected!")
+        print("\nUnknown Option Selected!\n")
 
 
 def list_local_builds():
-    build_list.clear()
-    build_menu.clear()
+    build_list = []
+    build_menu = {}
 
     files = [f for f in os.listdir('.') if os.path.isfile(f)]
     for f in files:
-        build_filename, build_file_extension = os.path.splitext(f)
-        if build_file_extension == ".zip":
-            build_list.append(f)
-
-    for index, b in enumerate(build_list):
-        build_menu[index] = b
-
-    print("\n")
-    for entry in build_menu:
-        print(entry, build_menu[entry])
-    print("\n")
-
-
-def list_server_builds():
-    build_list.clear()
-    build_menu.clear()
-
-    ftp = FTP(host)
-    print(ftp.getwelcome())
-
-    try:
-        ftp.login(username, password)
-        print("Logged in.")
-    except:
-        print("Failed to login.")
-
-    ftp.cwd(path)
-
-    lines = []
-    ftp.retrlines("NLST ", lines.append)
-
-    for f in lines:
         _filename, _file_extension = os.path.splitext(f)
         if _file_extension == ".zip":
             build_list.append(f)
 
-    for index, b in enumerate(build_list):
-        build_menu[index] = b
+    for index, build in enumerate(build_list):
+        build_menu[index + 1] = build
 
     print("\n")
     for entry in build_menu:
         print(entry, build_menu[entry])
     print("\n")
 
-    ftp.quit()
+    return(build_list)
 
 
-def zip():
+def list_server_builds():
+    build_list = []
+    build_menu = {}
+
+    builds = []
+    ftp.retrlines("NLST ", builds.append)
+
+    for f in builds:
+        _filename, _file_extension = os.path.splitext(f)
+        if _file_extension == ".zip":
+            build_list.append(f)
+
+    for index, build in enumerate(build_list):
+        build_menu[index + 1] = build
+
+    print("\n")
+    for entry in build_menu:
+        print(entry, build_menu[entry])
+    print("\n")
+
+    return(build_list)
+
+
+def backup():
+    filename = f"{build_name}_v{build_version}_{timestamp}_v{kodi_version}.zip"
+
     def zipdir(path, ziph):
-        for root, dirs, files in os.walk(path):
-            for file in files:
-                ziph.write(os.path.join(root, file),
-                           os.path.relpath(os.path.join(root, file),
+        for _root, _dirs, _files in os.walk(path):
+            for file in _files:
+                ziph.write(os.path.join(_root, file),
+                           os.path.relpath(os.path.join(_root, file),
                                            os.path.join(path, "..")))
 
     def zipit(dir_list, zip_name):
@@ -135,103 +133,81 @@ def zip():
 
     try:
         zipit(folders, filename)
-        print("Created archive")
+        print("\nCreated archive\n")
     except:
-        print("Failed to create archive.")
+        print("\nFailed to create archive\n")
 
 
 def upload():
-    ftp = FTP(host)
-    print(ftp.getwelcome())
+    build_list = list_local_builds()
 
-    list_local_builds()
-
-    selection = input("Please Select: ")
-    print("\n")
+    print("Press \"0\" to go back.")
+    selection = input("\nPlease Select: ")
 
     build = build_list[int(selection)]
 
-    try:
-        ftp.login(username, password)
-        print("Logged in.")
-    except:
-        print("Failed to login.")
-
-    try:
-        ftp.cwd(path)
-        ftp.storbinary("STOR " + build, open(build, "rb"))
-        ftp.quit()
-        print("Uploaded file.")
-    except:
-        print("Failed to upload file")
+    if selection == "0":
+        return
+    else:
+        try:
+            ftp.storbinary("STOR " + build, open(build, "rb"))
+            print("\nUploaded file\n")
+        except:
+            print("\nFailed to upload file\n")
 
 
 def download():
-    ftp = FTP(host)
-    print(ftp.getwelcome())
+    build_list = list_server_builds()
 
-    try:
-        ftp.login(username, password)
-        print("Logged in.")
-    except:
-        print("Failed to login.")
-
-    try:
-        list_server_builds()
-
-        selection = input("Please Select: ")
-        print("\n")
-
-        build = build_list[int(selection)]
-
-        ftp.cwd(path)
-        ftp.retrbinary("RETR " + build, open(build, "wb").write)
-        ftp.quit()
-        print("Downloaded file.")
-    except:
-        print("Failed to download file")
-
-
-def delete_local_file():
-
-    list_local_builds()
-
-    selection = input("Please Select: ")
-    print("\n")
+    print("Press \"0\" to go back.")
+    selection = input("\nPlease Select: ")
 
     build = build_list[int(selection)]
 
-    try:
-        os.remove(build)
-        print("Deleted local file.")
-    except:
-        print("Failed to delete local file.")
+    if selection == "0":
+        return
+    else:
+        try:
+            ftp.retrbinary("RETR " + build, open(build, "wb").write)
+            print("\nDownloaded file\n")
+        except:
+            print("\nFailed to download file\n")
+
+
+def delete_local_file():
+    build_list = list_local_builds()
+
+    print("Press \"0\" to go back.")
+    selection = input("\nPlease Select: ")
+
+    build = build_list[int(selection)]
+
+    if selection == "0":
+        return
+    else:
+        try:
+            os.remove(build)
+            print("\nDeleted local file\n")
+        except:
+            print("\nFailed to delete local file\n")
 
 
 def delete_server_file():
-    ftp = FTP(host)
-    print(ftp.getwelcome())
+    build_list = list_server_builds()
 
-    try:
-        ftp.login(username, password)
-        print("Logged in.")
-    except:
-        print("Failed to login.")
+    print("Press \"0\" to go back.")
+    selection = input("\nPlease Select: ")
 
-    try:
-        list_server_builds()
+    build = build_list[int(selection)]
 
-        selection = input("Please Select: ")
-        print("\n")
-
-        build = build_list[int(selection)]
-
-        ftp.cwd(path)
-        ftp.delete(build)
-        ftp.quit()
-        print("Deleted server file.")
-    except:
-        print("Failed to delete server file.")
+    if selection == "0":
+        return
+    else:
+        try:
+            ftp.delete(build)
+            print("\nDeleted server file\n")
+        except:
+            print("\nFailed to delete server file\n")
 
 
 while True:
