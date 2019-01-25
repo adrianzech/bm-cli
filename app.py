@@ -16,10 +16,7 @@ folders = [
     "data/addons",
     "data/userdata"]
 
-build_name = "AdrianBuild"
-build_version = "1.42"
-timestamp = "{0:%Y%m%d_%H%M}".format(datetime.datetime.now())
-kodi_version = "17.6"
+local_kodi_version = "17.3"
 # endregion
 
 # region menu
@@ -192,6 +189,12 @@ def extract(build):
 
 
 def backup():
+    build_name = input("\nEnter build name: ")
+    build_version = input("Enter build version: ")
+    kodi_version = input("Enter kodi version: ")
+
+    timestamp = "{0:%Y%m%d_%H%M}".format(datetime.datetime.now())
+
     filename = f"{build_name}_v{build_version}_{timestamp}_v{kodi_version}.zip"
 
     def zipdir(path, ziph):
@@ -232,7 +235,7 @@ def restore():
     if selection == "0":
         return
     else:
-        if _kodi_version == f"v{kodi_version}":
+        if _kodi_version == f"v{local_kodi_version}":
             extract(build)
         else:
             print("\nWrong Kodi version\n")
