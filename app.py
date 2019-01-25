@@ -84,18 +84,19 @@ def setup():
 
 def ftp_login():
     try:
-        ftp = FTP(config["ftp"]["host"])
+        ftp_login.ftp = FTP(config["ftp"]["host"])
     except:
         print("\nFailed to reach host, please update your ftp settings.\n")
         setup()
 
     try:
-        ftp.login(config["ftp"]["username"], config["ftp"]["password"])
+        ftp_login.ftp.login(config["ftp"]["username"],
+                            config["ftp"]["password"])
     except:
         print("\nFailed to login, please update your ftp settings.\n")
         setup()
 
-    ftp.cwd("/")
+    ftp_login.ftp.cwd("/")
 
 
 def start_menu():
@@ -155,7 +156,7 @@ def list_server_builds():
     build_menu = {}
 
     builds = []
-    ftp.retrlines("NLST ", builds.append)
+    ftp_login.ftp.retrlines("NLST ", builds.append)
 
     for f in builds:
         _filename, _file_extension = os.path.splitext(f)
@@ -255,7 +256,7 @@ def upload():
         return
     else:
         try:
-            ftp.storbinary("STOR " + build, open(build, "rb"))
+            ftp_login.ftp.storbinary("STOR " + build, open(build, "rb"))
             print("\nUploaded file\n")
         except:
             print("\nFailed to upload file\n")
@@ -273,7 +274,7 @@ def download():
         return
     else:
         try:
-            ftp.retrbinary("RETR " + build, open(build, "wb").write)
+            ftp_login.ftp.retrbinary("RETR " + build, open(build, "wb").write)
             print("\nDownloaded file\n")
         except:
             print("\nFailed to download file\n")
@@ -309,11 +310,10 @@ def delete_server_file():
         return
     else:
         try:
-            ftp.delete(build)
+            ftp_login.ftp.delete(build)
             print("\nDeleted server file\n")
         except:
             print("\nFailed to delete server file\n")
 
 
-if __name__ == "__main__":
-    main()
+main()
