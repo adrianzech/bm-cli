@@ -17,19 +17,19 @@ use_ftps = True
 data_folder = "data"
 builds_folder = "builds"
 
-local_kodi_version = "17.3"
+local_system_version = "17.3"
 # endregion
 
 # region menu
 menu = {}
 menu["[1]:"] = "List local builds"
 menu["[2]:"] = "List server builds"
-menu["[3]:"] = "Backup"
-menu["[4]:"] = "Restore"
-menu["[5]:"] = "Upload"
-menu["[6]:"] = "Download"
-menu["[7]:"] = "Delete local file"
-menu["[8]:"] = "Delete server file"
+menu["[3]:"] = "Create build"
+menu["[4]:"] = "Restore build"
+menu["[5]:"] = "Upload build"
+menu["[6]:"] = "Download build"
+menu["[7]:"] = "Delete local build"
+menu["[8]:"] = "Delete server build"
 menu["[9]:"] = "Change ftp settings"
 menu["[0]:"] = "Exit"
 # endregion
@@ -48,7 +48,7 @@ def main():
     config.read_file(open("config.cfg"))
 
     if config["ftp"]["host"] == "" or config["ftp"]["username"] == "" or config["ftp"]["password"] == "":
-        setup()
+        ftp_setup()
     else:
         ftp_login()
 
@@ -75,7 +75,7 @@ def check_config():
         write_default_config()
 
 
-def setup():
+def ftp_setup():
     config["ftp"]["host"] = input("\nEnter ftp host: ")
     config["ftp"]["username"] = input("Enter ftp username: ")
     config["ftp"]["password"] = getpass.getpass("Enter ftp password: ")
@@ -83,6 +83,7 @@ def setup():
     with open("config.cfg", "w") as configfile:
         config.write(configfile)
 
+    clear()
     main()
 
 
@@ -91,8 +92,8 @@ def ftp_login():
         try:
             ftp_login.ftp = FTP_TLS(config["ftp"]["host"])
         except:
-            print("\nFailed to reach host, please update your ftp settings.\n")
-            setup()
+            print("Failed to reach host\n\nPlease enter ftp login information:")
+            ftp_setup()
 
         try:
             ftp_login.ftp.login(config["ftp"]["username"],
@@ -101,14 +102,14 @@ def ftp_login():
             ftp_login.ftp.prot_p()
             ftp_login.ftp.cwd("/")
         except:
-            print("\nFailed to login, please update your ftp settings.\n")
-            setup()
+            print("Failed to login\n\nPlease enter ftp login information:")
+            ftp_setup()
     else:
         try:
             ftp_login.ftp = FTP(config["ftp"]["host"])
         except:
-            print("\nFailed to reach host, please update your ftp settings.\n")
-            setup()
+            print("Failed to reach host\n\nPlease enter ftp login information:")
+            ftp_setup()
 
         try:
             ftp_login.ftp.login(config["ftp"]["username"],
@@ -116,8 +117,8 @@ def ftp_login():
 
             ftp_login.ftp.cwd("/")
         except:
-            print("\nFailed to login, please update your ftp settings.\n")
-            setup()
+            print("Failed to login\n\nPlease enter ftp login information:")
+            ftp_setup()
 
 
 def start_menu():
@@ -132,22 +133,23 @@ def start_menu():
     elif selection == "2":
         list_server_builds()
     elif selection == "3":
-        backup()
+        create_build()
     elif selection == "4":
-        restore()
+        restore_build()
     elif selection == "5":
-        upload()
+        upload_build()
     elif selection == "6":
-        download()
+        download_build()
     elif selection == "7":
-        delete_local_file()
+        delete_local_build()
     elif selection == "8":
-        delete_server_file()
+        delete_server_build()
     elif selection == "9":
-        setup()
+        ftp_setup()
     elif selection == "0":
         sys.exit()
     else:
+        clear()
         print("\nUnknown Option Selected!\n")
 
 
@@ -221,17 +223,17 @@ def extract(build):
         print(f"Failed to restore [{build}] to [{data_folder}]\n")
 
 
-def backup():
+def create_build():
     clear()
-    print("Create Backup:\n")
+    print("Create build:\n")
 
     build_name = input("\nEnter build name: ")
     build_version = input("Enter build version: ")
-    kodi_version = input("Enter kodi version: ")
+    system_version = input("Enter system version: ")
 
     timestamp = "{0:%Y%m%d_%H%M}".format(datetime.datetime.now())
 
-    filename = f"{build_name}_v{build_version}_{timestamp}_v{kodi_version}.zip"
+    filename = f"{build_name}_v{build_version}_{timestamp}_v{system_version}.zip"
 
     create_backup = input(f"\nDo you want to create [{filename}]? (y, n):")
 
@@ -266,7 +268,7 @@ def backup():
         return
 
 
-def restore():
+def restore_build():
     clear()
     print("Choose which build to to restore:\n")
 
@@ -280,7 +282,7 @@ def restore():
     parsed_string = pathlib.Path(f"{builds_folder}/{build}").stem.split("_")
 
     try:
-        _kodi_version = parsed_string[4]
+        _system_version = parsed_string[4]
     except:
         clear()
         print("File doesn't use valid naming scheme\n")
@@ -290,11 +292,11 @@ def restore():
         clear()
         return
     else:
-        if _kodi_version == f"v{local_kodi_version}":
+        if _system_version == f"v{local_system_version}":
             extract(f"{builds_folder}/{build}")
         else:
             clear()
-            print("Wrong Kodi version\n")
+            print("Wrong system version\n")
             selection = input(
                 "Are you sure you want to restore the build? (y, n): ")
             if selection == "y":
@@ -304,7 +306,7 @@ def restore():
                 return
 
 
-def upload():
+def upload_build():
     clear()
     print("Choose which build to to upload:\n")
 
@@ -328,7 +330,7 @@ def upload():
             print(f"Failed to upload [{build}] to server\n")
 
 
-def download():
+def download_build():
     clear()
     print("Choose which build to to download:\n")
 
@@ -352,7 +354,7 @@ def download():
             print(f"Failed to download [{build}] from server\n")
 
 
-def delete_local_file():
+def delete_local_build():
     clear()
     print("Choose which build to delete from hard drive:\n")
 
@@ -375,7 +377,7 @@ def delete_local_file():
             print(f"Failed to delete [{build}] from hard drive\n")
 
 
-def delete_server_file():
+def delete_server_build():
     clear()
     print("Choose which build to delete from server:\n")
 
