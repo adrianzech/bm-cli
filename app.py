@@ -7,10 +7,14 @@ import datetime
 import getpass
 import configparser
 from ftplib import FTP
+from ftplib import FTP_TLS
 
 config = configparser.ConfigParser()
 
 # region settings
+
+use_ftps = True
+
 data_folder = "data"
 folders = [
     "data/addons",
@@ -80,20 +84,37 @@ def setup():
 
 
 def ftp_login():
-    try:
-        ftp_login.ftp = FTP(config["ftp"]["host"])
-    except:
-        print("\nFailed to reach host, please update your ftp settings.\n")
-        setup()
+    if use_ftps == True:
+        try:
+            ftp_login.ftp = FTP_TLS(config["ftp"]["host"])
+        except:
+            print("\nFailed to reach host, please update your ftp settings.\n")
+            setup()
 
-    try:
-        ftp_login.ftp.login(config["ftp"]["username"],
-                            config["ftp"]["password"])
-    except:
-        print("\nFailed to login, please update your ftp settings.\n")
-        setup()
+        try:
+            ftp_login.ftp.login(config["ftp"]["username"],
+                                config["ftp"]["password"])
 
-    ftp_login.ftp.cwd("/")
+            ftp_login.ftp.prot_p()
+            ftp_login.ftp.cwd("/")
+        except:
+            print("\nFailed to login, please update your ftp settings.\n")
+            setup()
+    else:
+        try:
+            ftp_login.ftp = FTP(config["ftp"]["host"])
+        except:
+            print("\nFailed to reach host, please update your ftp settings.\n")
+            setup()
+
+        try:
+            ftp_login.ftp.login(config["ftp"]["username"],
+                                config["ftp"]["password"])
+
+            ftp_login.ftp.cwd("/")
+        except:
+            print("\nFailed to login, please update your ftp settings.\n")
+            setup()
 
 
 def start_menu():
