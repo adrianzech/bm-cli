@@ -12,31 +12,34 @@ from ftplib import FTP_TLS
 config = configparser.ConfigParser()
 
 # region settings
-
 use_ftps = True
 
 data_folder = "data"
-folders = [
-    "data/addons",
-    "data/userdata"]
+builds_folder = "builds"
 
 local_kodi_version = "17.3"
 # endregion
 
 # region menu
 menu = {}
-
-menu["0"] = "Exit"
-menu["1"] = "List local builds"
-menu["2"] = "List server builds"
-menu["3"] = "Backup"
-menu["4"] = "Restore"
-menu["5"] = "Upload"
-menu["6"] = "Download"
-menu["7"] = "Delete local file"
-menu["8"] = "Delete server file"
-menu["9"] = "Change ftp settings"
+menu["[1]:"] = "List local builds"
+menu["[2]:"] = "List server builds"
+menu["[3]:"] = "Backup"
+menu["[4]:"] = "Restore"
+menu["[5]:"] = "Upload"
+menu["[6]:"] = "Download"
+menu["[7]:"] = "Delete local file"
+menu["[8]:"] = "Delete server file"
+menu["[9]:"] = "Change ftp settings"
+menu["[0]:"] = "Exit"
 # endregion
+
+
+def clear():
+    os.system("clear")
+
+
+clear()
 
 
 def main():
@@ -118,15 +121,13 @@ def ftp_login():
 
 
 def start_menu():
-    print("\n")
+    print("Build Manager\n")
     for entry in menu:
         print(entry, menu[entry])
 
     selection = input("\nPlease Select: ")
 
-    if selection == "0":
-        sys.exit()
-    elif selection == "1":
+    if selection == "1":
         list_local_builds()
     elif selection == "2":
         list_server_builds()
@@ -144,16 +145,17 @@ def start_menu():
         delete_server_file()
     elif selection == "9":
         setup()
+    elif selection == "0":
+        sys.exit()
     else:
         print("\nUnknown Option Selected!\n")
 
 
-def list_local_builds():
+def get_local_builds():
     build_list = []
     build_menu = {}
 
-    files = [f for f in os.listdir('.') if os.path.isfile(f)]
-    for f in files:
+    for f in os.listdir(builds_folder):
         _filename, _file_extension = os.path.splitext(f)
         if _file_extension == ".zip":
             build_list.append(f)
@@ -161,15 +163,14 @@ def list_local_builds():
     for index, build in enumerate(build_list):
         build_menu[index + 1] = build
 
-    print("\n")
     for entry in build_menu:
-        print(entry, build_menu[entry])
+        print(f"{[entry]}: {build_menu[entry]}")
     print("\n")
 
     return(build_list)
 
 
-def list_server_builds():
+def get_server_builds():
     build_list = []
     build_menu = {}
 
@@ -184,32 +185,46 @@ def list_server_builds():
     for index, build in enumerate(build_list):
         build_menu[index + 1] = build
 
-    print("\n")
     for entry in build_menu:
-        print(entry, build_menu[entry])
+        print(f"{[entry]}: {build_menu[entry]}")
     print("\n")
 
     return(build_list)
 
 
+def list_local_builds():
+    clear()
+    print("Local Builds:\n")
+    get_local_builds()
+
+
+def list_server_builds():
+    clear()
+    print("Server Builds:\n")
+    get_server_builds()
+
+
 def extract(build):
+    clear()
     try:
         if len(os.listdir(data_folder)) != 0:
             for dir in os.listdir(data_folder):
                 shutil.rmtree(f"{data_folder}/{dir}")
-                print("\nDeleted files")
     except:
-        print("\nFailed to delete files")
+        print("Failed to delete files\n")
 
     try:
         zipf = zipfile.ZipFile(build, "r")
         zipf.extractall(data_folder)
-        print("Restored files\n")
+        print(f"Restored [{build}] to [{data_folder}]\n")
     except:
-        print("Failed to restore files\n")
+        print(f"Failed to restore [{build}] to [{data_folder}]\n")
 
 
 def backup():
+    clear()
+    print("Create Backup:\n")
+
     build_name = input("\nEnter build name: ")
     build_version = input("Enter build version: ")
     kodi_version = input("Enter kodi version: ")
@@ -218,126 +233,169 @@ def backup():
 
     filename = f"{build_name}_v{build_version}_{timestamp}_v{kodi_version}.zip"
 
-    def zipdir(path, ziph):
-        for _root, _dirs, _files in os.walk(path):
-            for file in _files:
-                ziph.write(os.path.join(_root, file),
-                           os.path.relpath(os.path.join(_root, file),
-                                           os.path.join(path, "..")))
+    create_backup = input(f"\nDo you want to create [{filename}]? (y, n):")
 
-    def zipit(dir_list, zip_name):
-        zipf = zipfile.ZipFile(zip_name, "w", zipfile.ZIP_DEFLATED)
-        for dir in dir_list:
-            zipdir(dir, zipf)
+    folders = []
+    for f in os.listdir(data_folder):
+        folders.append(f"{data_folder}/{f}")
 
-    try:
-        zipit(folders, filename)
-        print(f"\nCreated archive: {filename}\n")
-    except:
-        print("\nFailed to create archive\n")
+    print(folders)
+
+    if create_backup == "y":
+        def zipdir(path, ziph):
+            for _root, _dirs, _files in os.walk(path):
+                for file in _files:
+                    ziph.write(os.path.join(_root, file),
+                               os.path.relpath(os.path.join(_root, file),
+                                               os.path.join(path, "..")))
+
+        def zipit(dir_list, zip_name):
+            zipf = zipfile.ZipFile(zip_name, "w", zipfile.ZIP_DEFLATED)
+            for dir in dir_list:
+                zipdir(dir, zipf)
+
+        try:
+            zipit(folders, filename)
+            clear()
+            print(f"Created [{filename}] in [{data_folder}]\n")
+        except:
+            clear()
+            print(f"Failed to create [{filename}] in [{data_folder}]\n")
+    elif create_backup == "n":
+        clear()
+        return
 
 
 def restore():
-    build_list = list_local_builds()
+    clear()
+    print("Choose which build to to restore:\n")
+
+    build_list = get_local_builds()
 
     print("Press \"0\" to go back.")
     selection = input("\nPlease Select: ")
 
     build = build_list[int(selection) - 1]
 
-    parsed_string = pathlib.Path(build).stem.split("_")
+    parsed_string = pathlib.Path(f"{builds_folder}/{build}").stem.split("_")
 
     try:
         _kodi_version = parsed_string[4]
     except:
-        print("\nFile doesn't use valid naming scheme\n")
+        clear()
+        print("File doesn't use valid naming scheme\n")
         return
 
     if selection == "0":
+        clear()
         return
     else:
         if _kodi_version == f"v{local_kodi_version}":
-            extract(build)
+            extract(f"{builds_folder}/{build}")
         else:
-            print("\nWrong Kodi version\n")
+            clear()
+            print("Wrong Kodi version\n")
             selection = input(
                 "Are you sure you want to restore the build? (y, n): ")
             if selection == "y":
-                extract(build)
+                extract(f"{builds_folder}/{build}")
             elif selection == "n":
+                clear()
                 return
 
 
 def upload():
-    build_list = list_local_builds()
+    clear()
+    print("Choose which build to to upload:\n")
+
+    build_list = get_local_builds()
 
     print("Press \"0\" to go back.")
     selection = input("\nPlease Select: ")
 
     build = build_list[int(selection) - 1]
 
+    clear()
+
     if selection == "0":
         return
     else:
         try:
-            ftp_login.ftp.storbinary("STOR " + build, open(build, "rb"))
-            print("\nUploaded file\n")
+            ftp_login.ftp.storbinary(
+                "STOR " + build, open(f"{builds_folder}/{build}", "rb"))
+            print(f"Uploaded [{build}] to server\n")
         except:
-            print("\nFailed to upload file\n")
+            print(f"Failed to upload [{build}] to server\n")
 
 
 def download():
-    build_list = list_server_builds()
+    clear()
+    print("Choose which build to to download:\n")
+
+    build_list = get_server_builds()
 
     print("Press \"0\" to go back.")
     selection = input("\nPlease Select: ")
 
     build = build_list[int(selection) - 1]
 
+    clear()
+
     if selection == "0":
         return
     else:
         try:
-            ftp_login.ftp.retrbinary("RETR " + build, open(build, "wb").write)
-            print("\nDownloaded file\n")
+            ftp_login.ftp.retrbinary(
+                "RETR " + build, open(f"{builds_folder}/{build}", "wb").write)
+            print(f"Downloaded [{build}] from server\n")
         except:
-            print("\nFailed to download file\n")
+            print(f"Failed to download [{build}] from server\n")
 
 
 def delete_local_file():
-    build_list = list_local_builds()
+    clear()
+    print("Choose which build to delete from hard drive:\n")
+
+    build_list = get_local_builds()
 
     print("Press \"0\" to go back.")
     selection = input("\nPlease Select: ")
 
     build = build_list[int(selection) - 1]
+
+    clear()
 
     if selection == "0":
         return
     else:
         try:
-            os.remove(build)
-            print("\nDeleted local file\n")
+            os.remove(f"{builds_folder}/{build}")
+            print(f"Deleted [{build}] from hard drive\n")
         except:
-            print("\nFailed to delete local file\n")
+            print(f"Failed to delete [{build}] from hard drive\n")
 
 
 def delete_server_file():
-    build_list = list_server_builds()
+    clear()
+    print("Choose which build to delete from server:\n")
+
+    build_list = get_server_builds()
 
     print("Press \"0\" to go back.")
     selection = input("\nPlease Select: ")
 
     build = build_list[int(selection) - 1]
+
+    clear()
 
     if selection == "0":
         return
     else:
         try:
             ftp_login.ftp.delete(build)
-            print("\nDeleted server file\n")
+            print(f"Deleted [{build}] from server\n")
         except:
-            print("\nFailed to delete server file\n")
+            print(f"Failed to delete [{build}] from server\n")
 
 
 main()
