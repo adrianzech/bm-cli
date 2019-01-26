@@ -39,10 +39,8 @@ def clear():
     os.system("clear")
 
 
-clear()
-
-
 def main():
+    check_folders()
     check_config()
 
     config.read_file(open("config.cfg"))
@@ -65,13 +63,25 @@ def write_default_config():
         config.write(configfile)
 
 
+def check_folders():
+    if not os.path.isdir(data_folder):
+        os.mkdir(data_folder)
+        print("data folder missing")
+    elif not os.path.isdir(builds_folder):
+        os.mkdir(builds_folder)
+        print("builds folder missing")
+    else:
+        print("folders found")
+        return
+
+
 def check_config():
     if not os.path.isfile("config.cfg"):
-        print("\nMissing config file, please follow the setup wizard.")
+        print("Missing config file, please follow the setup wizard.")
         write_default_config()
 
     if os.stat("config.cfg").st_size == 0:
-        print("\nConfig file is empty, please follow the setup wizard.")
+        print("Config file is empty, please follow the setup wizard.")
         write_default_config()
 
 
@@ -147,10 +157,11 @@ def start_menu():
     elif selection == "9":
         ftp_setup()
     elif selection == "0":
+        clear()
         sys.exit()
     else:
         clear()
-        print("\nUnknown Option Selected!\n")
+        print("Unknown Option Selected!\n")
 
 
 def get_local_builds():
@@ -400,4 +411,5 @@ def delete_server_build():
             print(f"Failed to delete [{build}] from server\n")
 
 
+clear()
 main()
