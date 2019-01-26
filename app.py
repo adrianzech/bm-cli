@@ -10,15 +10,7 @@ from ftplib import FTP
 from ftplib import FTP_TLS
 
 config = configparser.ConfigParser()
-
-# region settings
-use_ftps = True
-
-data_folder = "data"
-builds_folder = "builds"
-
 local_system_version = "17.3"
-# endregion
 
 # region menu
 menu = {}
@@ -40,12 +32,16 @@ def clear():
 
 
 def main():
-    check_folders()
     check_config()
 
     config.read_file(open("config.cfg"))
 
-    if config["ftp"]["host"] == "" or config["ftp"]["username"] == "" or config["ftp"]["password"] == "":
+    if config["folders"]["data-folder"] == "" or config["folders"]["data-folder"] == "":
+        folders_setup()
+
+    check_folders()
+
+    if config["ftp"]["use-ftps"] == "" or config["ftp"]["host"] == "" or config["ftp"]["username"] == "" or config["ftp"]["password"] == "":
         ftp_setup()
     else:
         ftp_login()
@@ -55,7 +51,8 @@ def main():
 
 
 def write_default_config():
-    config["ftp"] = {"host": "",
+    config["ftp"] = {"use-ftps": "",
+                     "host": "",
                      "username": "",
                      "password": ""}
 
@@ -64,14 +61,11 @@ def write_default_config():
 
 
 def check_folders():
-    if not os.path.isdir(data_folder):
-        os.mkdir(data_folder)
-        print("data folder missing")
-    elif not os.path.isdir(builds_folder):
-        os.mkdir(builds_folder)
-        print("builds folder missing")
+    if not os.path.isdir(config["folders"]["data-folder"]):
+        os.mkdir(config["folders"]["data-folder"])
+    elif not os.path.isdir(config["folders"]["data-folder"]):
+        os.mkdir(config["folders"]["data-folder"])
     else:
-        print("folders found")
         return
 
 
@@ -85,7 +79,30 @@ def check_config():
         write_default_config()
 
 
+def folders_setup():
+    # TODO: Press enter for default value
+    # TODO: Check if name is valid
+    clear()
+    print("Please follow the setup wizard:\n")
+    config["folders"]["data-folder"] = input("Enter data folder name: ")
+    config["folders"]["data-folder"] = input("Enter builds folder name: ")
+    return
+    # TODO: Message
+
+
 def ftp_setup():
+    clear()
+    print("Please follow the setup wizard:\n")
+    use_ftps = input("Do you want use ftps instead of ftp? (y, n):  ")
+    if use_ftps == "y":
+        config["ftp"]["use-ftps"] = "true"
+    elif use_ftps == "n":
+        config["ftp"]["use-ftps"] = "false"
+    else:
+        clear()
+        print("Wrong input, please try again:\n")
+        ftp_setup()
+
     config["ftp"]["host"] = input("\nEnter ftp host: ")
     config["ftp"]["username"] = input("Enter ftp username: ")
     config["ftp"]["password"] = getpass.getpass("Enter ftp password: ")
@@ -98,7 +115,7 @@ def ftp_setup():
 
 
 def ftp_login():
-    if use_ftps == True:
+    if config["ftp"]["use-ftps"] == "true":
         try:
             ftp_login.ftp = FTP_TLS(config["ftp"]["host"])
         except:
@@ -114,7 +131,7 @@ def ftp_login():
         except:
             print("Failed to login\n\nPlease enter ftp login information:")
             ftp_setup()
-    else:
+    elif config["ftp"]["use-ftps"] == "false":
         try:
             ftp_login.ftp = FTP(config["ftp"]["host"])
         except:
@@ -129,6 +146,9 @@ def ftp_login():
         except:
             print("Failed to login\n\nPlease enter ftp login information:")
             ftp_setup()
+    else:
+        # TODO: do something
+        return
 
 
 def start_menu():
@@ -168,7 +188,7 @@ def get_local_builds():
     build_list = []
     build_menu = {}
 
-    for f in os.listdir(builds_folder):
+    for f in os.listdir(config["folders"]["data-folder"]):
         _filename, _file_extension = os.path.splitext(f)
         if _file_extension == ".zip":
             build_list.append(f)
@@ -220,18 +240,20 @@ def list_server_builds():
 def extract(build):
     clear()
     try:
-        if len(os.listdir(data_folder)) != 0:
-            for dir in os.listdir(data_folder):
-                shutil.rmtree(f"{data_folder}/{dir}")
+        if len(os.listdir(config["folders"]["data-folder"])) != 0:
+            for dir in os.listdir(config["folders"]["data-folder"]):
+                # shutil.rmtree(f"{config["folders"]["data-folder"]}/{dir}")
+                # shutil.rmtree("{}/{}".format(config["folders"]["data-folder"], dir)
+                shutil.rmtree("%s/%s" % config["folders"]["data-folder"], dir)
     except:
         print("Failed to delete files\n")
 
     try:
         zipf = zipfile.ZipFile(build, "r")
-        zipf.extractall(data_folder)
-        print(f"Restored [{build}] to [{data_folder}]\n")
+        zipf.extractall(config["folders"]["data-folder"])
+        print(f"Restored [{build}] to [{config["folders"]["data-folder"]}]\n")
     except:
-        print(f"Failed to restore [{build}] to [{data_folder}]\n")
+        print(f"Failed to restore [{build}] to [{config["folders"]["data-folder"]}]\n")
 
 
 def create_build():
@@ -249,8 +271,8 @@ def create_build():
     create_backup = input(f"\nDo you want to create [{filename}]? (y, n):")
 
     folders = []
-    for f in os.listdir(data_folder):
-        folders.append(f"{data_folder}/{f}")
+    for f in os.listdir(config["folders"]["data-folder"]):
+        folders.append(config["folders"]["data-folder"])
 
     print(folders)
 
@@ -270,10 +292,10 @@ def create_build():
         try:
             zipit(folders, filename)
             clear()
-            print(f"Created [{filename}] in [{data_folder}]\n")
+            print(f"Created [{filename}] in [{config["folders"]["data-folder"]}]\n")
         except:
             clear()
-            print(f"Failed to create [{filename}] in [{data_folder}]\n")
+            print(f"Failed to create [{filename}] in [{config["folders"]["data-folder"]}]\n")
     elif create_backup == "n":
         clear()
         return
@@ -290,7 +312,7 @@ def restore_build():
 
     build = build_list[int(selection) - 1]
 
-    parsed_string = pathlib.Path(f"{builds_folder}/{build}").stem.split("_")
+    parsed_string = pathlib.Path(f"{config["folders"]["data-folder"]}/{build}").stem.split("_")
 
     try:
         _system_version = parsed_string[4]
@@ -304,14 +326,14 @@ def restore_build():
         return
     else:
         if _system_version == f"v{local_system_version}":
-            extract(f"{builds_folder}/{build}")
+            extract(f"{config["folders"]["data-folder"]}/{build}")
         else:
             clear()
             print("Wrong system version\n")
             selection = input(
                 "Are you sure you want to restore the build? (y, n): ")
             if selection == "y":
-                extract(f"{builds_folder}/{build}")
+                extract(f"{config["folders"]["data-folder"]}/{build}")
             elif selection == "n":
                 clear()
                 return
@@ -335,7 +357,7 @@ def upload_build():
     else:
         try:
             ftp_login.ftp.storbinary(
-                "STOR " + build, open(f"{builds_folder}/{build}", "rb"))
+                "STOR " + build, open(f"{config["folders"]["data-folder"]}/{build}", "rb"))
             print(f"Uploaded [{build}] to server\n")
         except:
             print(f"Failed to upload [{build}] to server\n")
@@ -359,7 +381,7 @@ def download_build():
     else:
         try:
             ftp_login.ftp.retrbinary(
-                "RETR " + build, open(f"{builds_folder}/{build}", "wb").write)
+                "RETR " + build, open(f"{config["folders"]["data-folder"]}/{build}", "wb").write)
             print(f"Downloaded [{build}] from server\n")
         except:
             print(f"Failed to download [{build}] from server\n")
@@ -382,7 +404,7 @@ def delete_local_build():
         return
     else:
         try:
-            os.remove(f"{builds_folder}/{build}")
+            os.remove(f"{config["folders"]["data-folder"]}/{build}")
             print(f"Deleted [{build}] from hard drive\n")
         except:
             print(f"Failed to delete [{build}] from hard drive\n")
