@@ -2,7 +2,6 @@ import os
 import sys
 import shutil
 import pathlib
-import zipfile
 import datetime
 import getpass
 import configparser
@@ -10,7 +9,7 @@ from ftplib import FTP
 from ftplib import FTP_TLS
 
 config = configparser.ConfigParser()
-local_system_version = "17.3"
+system_version = "17.3"
 
 
 def clear():
@@ -74,8 +73,6 @@ def folders_setup():
     if not os.path.isdir(config["folders"]["builds-folder"]):
         os.mkdir(config["folders"]["builds-folder"])
 
-    # TODO: Return message to user
-
 
 def check_folders():
     # Check if data-folder and builds-folder are set in the config file
@@ -133,7 +130,7 @@ def ftp_login():
         try:
             ftp_login.ftp = FTP_TLS(config["ftp"]["host"])
         except:
-            print("Failed to reach host\n\nPlease enter ftp login information:")
+            print(f"Failed to reach host\n\nPlease enter ftp login information:")
             ftp_setup()
 
         try:
@@ -274,27 +271,32 @@ def list_server_builds():
     get_server_builds()
 
 
-def extract(build):
+def extract_build(build):
     clear()
-    # Check if data_folder has folders in it, if yes delete them
+    # Check if data_folder has any files or folders in it, if yes delete them
     try:
-        # TODO: Check also for files
         if len(os.listdir(main.data_folder)) != 0:
-            for dir in os.listdir(main.data_folder):
-                shutil.rmtree(f"{main.data_folder}/{dir}")
-    except:
-        print("Failed to delete files\n")
+            for f in os.listdir(main.data_folder):
+                file_path = os.path.join(main.data_folder, f)
+                if os.path.isfile(file_path):
+                    os.unlink(file_path)
+                elif os.path.isdir(file_path):
+                    shutil.rmtree(file_path)
+    except Exception as e:
+        print(f"Failed to delete files:\n{e}\n")
 
     # Extract build into data_folder
     try:
-        zipf = zipfile.ZipFile(build, "r")
-        zipf.extractall(main.data_folder)
+        shutil.unpack_archive(
+            f"{main.builds_folder}/{build}", main.data_folder, "zip")
+
         print(f"Restored [{build}] to [{main.data_folder}]\n")
-    except:
-        print(f"Failed to restore [{build}] to [{main.data_folder}]\n")
+    except Exception as e:
+        print(f"Failed to restore [{build}] to [{main.data_folder}]:\n{e}\n")
 
 
 def create_build():
+    # TODO: Move this clear() to startmenu? (Because of the invalid input message)
     clear()
     print("Create build:\n")
 
@@ -307,36 +309,25 @@ def create_build():
 
     create_backup = input(f"\nDo you want to create [{filename}]? (y, n):")
 
-    folders = []
-    # Check for subfolders in data_folder
-    # TODO: Check also for files
-    for f in os.listdir(main.data_folder):
-        folders.append(f)
-
     if create_backup == "y":
-        def zipdir(path, ziph):
-            for _root, _dirs, _files in os.walk(path):
-                for file in _files:
-                    ziph.write(os.path.join(_root, file),
-                               os.path.relpath(os.path.join(_root, file),
-                                               os.path.join(path, "..")))
-
-        def zipit(dir_list, zip_name):
-            zipf = zipfile.ZipFile(
-                f"{main.builds_folder}/{zip_name}", "w", zipfile.ZIP_DEFLATED)
-            for dir in dir_list:
-                zipdir(dir, zipf)
-
         try:
-            zipit(folders, filename)
+            # Create zip file with all contents from data_folder
+            shutil.make_archive(
+                f"{main.builds_folder}/{filename}", "zip", main.data_folder)
+
             clear()
-            print(f"Created [{filename}] in [{main.data_folder}]\n")
-        except:
+            print(f"Created [{filename}] in [{main.builds_folder}]\n")
+        except Exception as e:
             clear()
-            print(f"Failed to create [{filename}] in [{main.data_folder}]\n")
+            print(
+                f"Failed to create [{filename}] in [{main.builds_folder}]:\n{e}\n")
     elif create_backup == "n":
         clear()
         return
+    else:
+        clear()
+        print("Invalid input, please try again:\n")
+        create_build()
 
 
 def restore_build():
@@ -357,9 +348,9 @@ def restore_build():
     try:
         # Check if system version matches with build file
         _system_version = parsed_string[4]
-    except:
+    except Exception as e:
         clear()
-        print("File doesn't use valid naming scheme\n")
+        print(f"File doesn't use valid naming scheme:\n{e}\n")
         return
 
     if selection == "0":
@@ -367,15 +358,15 @@ def restore_build():
         return
     else:
         # Extratct build
-        if _system_version == f"v{local_system_version}":
-            extract(f"{main.builds_folder}/{build}")
+        if _system_version == f"v{system_version}":
+            extract_build(build)
         else:
             clear()
             print("Wrong system version\n")
             selection = input(
                 "Are you sure you want to restore the build? (y, n): ")
             if selection == "y":
-                extract(f"{main.builds_folder}/{build}")
+                extract_build(build)
             elif selection == "n":
                 clear()
                 return
@@ -401,8 +392,8 @@ def upload_build():
             ftp_login.ftp.storbinary(
                 "STOR " + build, open(f"{main.builds_folder}/{build}", "rb"))
             print(f"Uploaded [{build}] to server\n")
-        except:
-            print(f"Failed to upload [{build}] to server\n")
+        except Exception as e:
+            print(f"Failed to upload [{build}] to server:\n{e}\n")
 
 
 def download_build():
@@ -425,8 +416,8 @@ def download_build():
             ftp_login.ftp.retrbinary(
                 "RETR " + build, open(f"{main.builds_folder}/{build}", "wb").write)
             print(f"Downloaded [{build}] from server\n")
-        except:
-            print(f"Failed to download [{build}] from server\n")
+        except Exception as e:
+            print(f"Failed to download [{build}] from server:\n{e}\n")
 
 
 def delete_local_build():
@@ -448,8 +439,8 @@ def delete_local_build():
         try:
             os.remove(f"{main.builds_folder}/{build}")
             print(f"Deleted [{build}] from hard drive\n")
-        except:
-            print(f"Failed to delete [{build}] from hard drive\n")
+        except Exception as e:
+            print(f"Failed to delete [{build}] from hard drive:\n{e}\n")
 
 
 def delete_server_build():
@@ -471,8 +462,8 @@ def delete_server_build():
         try:
             ftp_login.ftp.delete(build)
             print(f"Deleted [{build}] from server\n")
-        except:
-            print(f"Failed to delete [{build}] from server\n")
+        except Exception as e:
+            print(f"Failed to delete [{build}] from server:\n{e}\n")
 
 
 clear()
