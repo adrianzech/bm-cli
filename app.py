@@ -1,5 +1,6 @@
 import os
 import sys
+import platform
 import shutil
 import pathlib
 import datetime
@@ -9,7 +10,6 @@ from ftplib import FTP
 from ftplib import FTP_TLS
 
 config = configparser.ConfigParser()
-system_version = "17.3"
 
 
 def clear():
@@ -99,7 +99,6 @@ def check_config():
 
 
 def ftp_setup():
-    clear()
     print("Please follow the setup wizard:\n")
     use_ftps = input("Do you want use ftps instead of ftp? (y, n):  ")
     if use_ftps == "y":
@@ -185,6 +184,8 @@ def start_menu():
 
     selection = input("\nPlease Select: ")
 
+    clear()
+
     if selection == "1":
         list_local_builds()
     elif selection == "2":
@@ -204,11 +205,9 @@ def start_menu():
     elif selection == "9":
         ftp_setup()
     elif selection == "0":
-        clear()
         sys.exit()
     else:
-        clear()
-        print("Unknown Option Selected!\n")
+        print("Unknown Option Selected\n")
 
 
 def get_local_builds():
@@ -260,13 +259,11 @@ def get_server_builds():
 
 
 def list_local_builds():
-    clear()
     print("Local Builds:\n")
     get_local_builds()
 
 
 def list_server_builds():
-    clear()
     print("Server Builds:\n")
     get_server_builds()
 
@@ -296,16 +293,20 @@ def extract_build(build):
 
 
 def create_build():
-    # TODO: Move this clear() to startmenu? (Because of the invalid input message)
-    clear()
     print("Create build:\n")
 
     build_name = input("\nEnter build name: ")
     build_version = input("Enter build version: ")
-    system_version = input("Enter system version: ")
+    system_input = input(
+        f"Enter system version (default: {platform.system()}): ")
+
+    if system_input == "":
+        system = platform.system()
+    else:
+        system = system_input
 
     timestamp = "{0:%Y%m%d_%H%M}".format(datetime.datetime.now())
-    filename = f"{build_name}_v{build_version}_{timestamp}_v{system_version}.zip"
+    filename = f"{build_name}_v{build_version}_{timestamp}_{system}.zip"
 
     create_backup = input(f"\nDo you want to create [{filename}]? (y, n):")
 
@@ -331,7 +332,6 @@ def create_build():
 
 
 def restore_build():
-    clear()
     print("Choose which build to to restore:\n")
 
     build_list = get_local_builds()
@@ -373,7 +373,6 @@ def restore_build():
 
 
 def upload_build():
-    clear()
     print("Choose which build to to upload:\n")
 
     build_list = get_local_builds()
@@ -397,7 +396,6 @@ def upload_build():
 
 
 def download_build():
-    clear()
     print("Choose which build to to download:\n")
 
     build_list = get_server_builds()
@@ -421,7 +419,6 @@ def download_build():
 
 
 def delete_local_build():
-    clear()
     print("Choose which build to delete from hard drive:\n")
 
     build_list = get_local_builds()
@@ -444,7 +441,6 @@ def delete_local_build():
 
 
 def delete_server_build():
-    clear()
     print("Choose which build to delete from server:\n")
 
     build_list = get_server_builds()
