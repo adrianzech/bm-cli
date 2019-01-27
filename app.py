@@ -12,26 +12,9 @@ from ftplib import FTP_TLS
 config = configparser.ConfigParser()
 local_system_version = "17.3"
 
-# region menu
-menu = {}
-menu["[1]:"] = "List local builds"
-menu["[2]:"] = "List server builds"
-menu["[3]:"] = "Create build"
-menu["[4]:"] = "Restore build"
-menu["[5]:"] = "Upload build"
-menu["[6]:"] = "Download build"
-menu["[7]:"] = "Delete local build"
-menu["[8]:"] = "Delete server build"
-menu["[9]:"] = "Change ftp settings"
-menu["[0]:"] = "Exit"
-# endregion
-
 
 def clear():
     os.system("clear")
-
-
-clear()
 
 
 def main():
@@ -140,6 +123,7 @@ def ftp_setup():
         config.write(configfile)
 
     clear()
+    # FIXME: Don't call main here, call ftp_login() somehow
     main()
 
 
@@ -185,6 +169,19 @@ def ftp_login():
 
 
 def start_menu():
+    menu = {}
+
+    menu["[1]:"] = "List local builds"
+    menu["[2]:"] = "List server builds"
+    menu["[3]:"] = "Create build"
+    menu["[4]:"] = "Restore build"
+    menu["[5]:"] = "Upload build"
+    menu["[6]:"] = "Download build"
+    menu["[7]:"] = "Delete local build"
+    menu["[8]:"] = "Delete server build"
+    menu["[9]:"] = "Change ftp settings"
+    menu["[0]:"] = "Exit"
+
     print("Build Manager\n")
     for entry in menu:
         print(entry, menu[entry])
@@ -306,7 +303,6 @@ def create_build():
     system_version = input("Enter system version: ")
 
     timestamp = "{0:%Y%m%d_%H%M}".format(datetime.datetime.now())
-
     filename = f"{build_name}_v{build_version}_{timestamp}_v{system_version}.zip"
 
     create_backup = input(f"\nDo you want to create [{filename}]? (y, n):")
@@ -318,7 +314,6 @@ def create_build():
         folders.append(f)
 
     if create_backup == "y":
-        # Create a zip file with every folder and file in folders
         def zipdir(path, ziph):
             for _root, _dirs, _files in os.walk(path):
                 for file in _files:
@@ -326,9 +321,9 @@ def create_build():
                                os.path.relpath(os.path.join(_root, file),
                                                os.path.join(path, "..")))
 
-        # Call zipdir() for every folder in folders
         def zipit(dir_list, zip_name):
-            zipf = zipfile.ZipFile(zip_name, "w", zipfile.ZIP_DEFLATED)
+            zipf = zipfile.ZipFile(
+                f"{main.builds_folder}/{zip_name}", "w", zipfile.ZIP_DEFLATED)
             for dir in dir_list:
                 zipdir(dir, zipf)
 
@@ -480,4 +475,5 @@ def delete_server_build():
             print(f"Failed to delete [{build}] from server\n")
 
 
+clear()
 main()
