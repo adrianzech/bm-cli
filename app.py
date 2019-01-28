@@ -256,6 +256,33 @@ def settings_menu():
         print("Unknown Option Selected\n")
 
 
+def os_menu():
+    menu = {}
+
+    menu["[1]:"] = "Linux"
+    menu["[2]:"] = "Windows"
+    menu["[3]:"] = "MacOS"
+
+    print("\nChoose your system:\n")
+    for entry in menu:
+        print(entry, menu[entry])
+
+    selection = input("\nPlease Select: ")
+
+    clear()
+
+    if selection == "1":
+        return("Linux")
+    elif selection == "2":
+        return("Windows")
+    elif selection == "3":
+        return("MacOS")
+    else:
+        clear()
+        print("Unknown Option Selected, please try again\n")
+        create_build()
+
+
 def get_local_builds():
     build_list = []
     build_menu = {}
@@ -342,21 +369,14 @@ def create_build():
     # TODO: Input validation
     print("Create build:\n")
 
-    build_name = input("\nEnter build name: ")
+    build_name = input("Enter build name: ")
     build_version = input("Enter build version: ")
-    system_input = input(
-        f"Enter system version (default: {platform.system()}): ")
-
-    # TODO: Create system menu to choose from
-    if system_input == "":
-        system = platform.system()
-    else:
-        system = system_input
+    system = os_menu()
 
     timestamp = "{0:%Y%m%d_%H%M}".format(datetime.datetime.now())
     filename = f"{build_name}_v{build_version}_{timestamp}_{system}.zip"
 
-    create_backup = input(f"\nDo you want to create [{filename}]? (y, n):")
+    create_backup = input(f"Do you want to create [{filename}]? (y, n):")
 
     if create_backup == "y":
         try:
