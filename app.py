@@ -48,8 +48,6 @@ def folders_setup():
     data_folder = input("Enter data folder name (default: data): ")
     builds_folder = input("Enter builds folder name(default: builds): ")
 
-    # FIXME: config doesnt get updated
-
     clear()
 
     # Write default values into config.cfg if users leaves input blank
@@ -69,6 +67,9 @@ def folders_setup():
         os.mkdir(config["folders"]["data-folder"])
     if not os.path.isdir(config["folders"]["builds-folder"]):
         os.mkdir(config["folders"]["builds-folder"])
+
+    with open("config.cfg", "w") as configfile:
+        config.write(configfile)
 
 
 def check_folders():
@@ -122,9 +123,6 @@ def ftp_setup():
 
     with open("config.cfg", "w") as configfile:
         config.write(configfile)
-
-    clear()
-    main()
 
 
 def ftp_login():
@@ -336,47 +334,50 @@ def create_build():
         create_build()
 
 
-# TODO: Input validation
 def restore_build():
     print("Choose which build to to restore:\n")
 
     build_list = get_local_builds()
 
-    print("Press \"0\" to go back.")
+    print("Leave blank to go back")
     selection = input("\nPlease Select: ")
 
-    build = build_list[int(selection) - 1]
+    if selection.isdigit():
+        if 1 <= int(selection) <= (len(build_list)):
+            build = build_list[int(selection) - 1]
 
-    # Parse build name into diffrent variables and store them in a array
-    parsed_string = pathlib.Path(
-        f"{main.builds_folder}/{build}").stem.split("_")
+            # Parse build name into diffrent variables and store them in a array
+            parsed_string = pathlib.Path(
+                f"{main.builds_folder}/{build}").stem.split("_")
 
-    try:
-        # Check if system version matches with build file
-        _system_version = parsed_string[4]
-    except Exception as e:
-        clear()
-        print(f"File doesn't use valid naming scheme\n{e}\n")
-        return
+            # Check if system version matches with build file
+            try:
+                _system_version = parsed_string[4]
+            except Exception as e:
+                clear()
+                print(f"File doesn't use valid naming scheme\n{e}\n")
+                return
 
-    # FIXME:
-    if selection == "0":
-        clear()
-        return
-    elif 0 <= int(selection) <= len(build_list):
-        # Extratct build
-        if _system_version == platform.system():
-            extract_build(build)
+            # Extratct build
+            if _system_version == platform.system():
+                extract_build(build)
+            else:
+                clear()
+                print("Wrong system version\n")
+                selection = input(
+                    "Are you sure you want to restore the build? (y, n): ")
+                if selection == "y":
+                    extract_build(build)
+                elif selection == "n":
+                    clear()
+                    return
         else:
             clear()
-            print("Wrong system version\n")
-            selection = input(
-                "Are you sure you want to restore the build? (y, n): ")
-            if selection == "y":
-                extract_build(build)
-            elif selection == "n":
-                clear()
-                return
+            print("Invalid input\n")
+            restore_build()
+    elif selection == "":
+        clear()
+        return
     else:
         clear()
         print("Invalid input\n")
@@ -388,22 +389,32 @@ def upload_build():
 
     build_list = get_local_builds()
 
-    print("Press \"0\" to go back.")
+    print("Leave blank to go back")
     selection = input("\nPlease Select: ")
 
-    build = build_list[int(selection) - 1]
+    if selection.isdigit():
+        if 1 <= int(selection) <= (len(build_list)):
+            build = build_list[int(selection) - 1]
 
-    clear()
+            clear()
 
-    if selection == "0":
+            try:
+                ftp_login.ftp.storbinary(
+                    "STOR " + build, open(f"{main.builds_folder}/{build}", "rb"))
+                print(f"Uploaded [{build}] to server\n")
+            except Exception as e:
+                print(f"Failed to upload [{build}] to server\n{e}\n")
+        else:
+            clear()
+            print("Invalid input\n")
+            restore_build()
+    elif selection == "":
+        clear()
         return
     else:
-        try:
-            ftp_login.ftp.storbinary(
-                "STOR " + build, open(f"{main.builds_folder}/{build}", "rb"))
-            print(f"Uploaded [{build}] to server\n")
-        except Exception as e:
-            print(f"Failed to upload [{build}] to server\n{e}\n")
+        clear()
+        print("Invalid input\n")
+        restore_build()
 
 
 def download_build():
@@ -411,22 +422,32 @@ def download_build():
 
     build_list = get_server_builds()
 
-    print("Press \"0\" to go back.")
+    print("Leave blank to go back")
     selection = input("\nPlease Select: ")
 
-    build = build_list[int(selection) - 1]
+    if selection.isdigit():
+        if 1 <= int(selection) <= (len(build_list)):
+            build = build_list[int(selection) - 1]
 
-    clear()
+            clear()
 
-    if selection == "0":
+            try:
+                ftp_login.ftp.retrbinary(
+                    "RETR " + build, open(f"{main.builds_folder}/{build}", "wb").write)
+                print(f"Downloaded [{build}] from server\n")
+            except Exception as e:
+                print(f"Failed to download [{build}] from server\n{e}\n")
+        else:
+            clear()
+            print("Invalid input\n")
+            restore_build()
+    elif selection == "":
+        clear()
         return
     else:
-        try:
-            ftp_login.ftp.retrbinary(
-                "RETR " + build, open(f"{main.builds_folder}/{build}", "wb").write)
-            print(f"Downloaded [{build}] from server\n")
-        except Exception as e:
-            print(f"Failed to download [{build}] from server\n{e}\n")
+        clear()
+        print("Invalid input\n")
+        restore_build()
 
 
 def delete_local_build():
@@ -437,18 +458,28 @@ def delete_local_build():
     print("Press \"0\" to go back.")
     selection = input("\nPlease Select: ")
 
-    build = build_list[int(selection) - 1]
+    if selection.isdigit():
+        if 1 <= int(selection) <= (len(build_list)):
+            build = build_list[int(selection) - 1]
 
-    clear()
+            clear()
 
-    if selection == "0":
+            try:
+                os.remove(f"{main.builds_folder}/{build}")
+                print(f"Deleted [{build}] from hard drive\n")
+            except Exception as e:
+                print(f"Failed to delete [{build}] from hard drive\n{e}\n")
+        else:
+            clear()
+            print("Invalid input\n")
+            restore_build()
+    elif selection == "":
+        clear()
         return
     else:
-        try:
-            os.remove(f"{main.builds_folder}/{build}")
-            print(f"Deleted [{build}] from hard drive\n")
-        except Exception as e:
-            print(f"Failed to delete [{build}] from hard drive\n{e}\n")
+        clear()
+        print("Invalid input\n")
+        restore_build()
 
 
 def delete_server_build():
@@ -459,18 +490,28 @@ def delete_server_build():
     print("Press \"0\" to go back.")
     selection = input("\nPlease Select: ")
 
-    build = build_list[int(selection) - 1]
+    if selection.isdigit():
+        if 1 <= int(selection) <= (len(build_list)):
+            build = build_list[int(selection) - 1]
 
-    clear()
+            clear()
 
-    if selection == "0":
+            try:
+                ftp_login.ftp.delete(build)
+                print(f"Deleted [{build}] from server\n")
+            except Exception as e:
+                print(f"Failed to delete [{build}] from server\n{e}\n")
+        else:
+            clear()
+            print("Invalid input\n")
+            restore_build()
+    elif selection == "":
+        clear()
         return
     else:
-        try:
-            ftp_login.ftp.delete(build)
-            print(f"Deleted [{build}] from server\n")
-        except Exception as e:
-            print(f"Failed to delete [{build}] from server\n{e}\n")
+        clear()
+        print("Invalid input\n")
+        restore_build()
 
 
 clear()
