@@ -18,14 +18,7 @@ def clear():
 
 def main():
     check_config()
-    config.read_file(open("config.cfg"))
     check_folders()
-
-    # Check if ftp values are empty in config.cfg
-    if config["ftp"]["use-ftps"] == "" or config["ftp"]["host"] == "" or config["ftp"]["username"] == "" or config["ftp"]["password"] == "":
-        ftp_setup()
-    else:
-        ftp_login()
 
     # Set folder variables to config.cfg values
     main.data_folder = config["folders"]["data-folder"]
@@ -49,11 +42,15 @@ def write_default_config():
 
 
 def folders_setup():
-    # TODO: Check if name is valid
+    # TODO: Input validation
     clear()
-    print("Please follow the setup wizard:\n")
+    print("Please follow the setup wizard\n")
     data_folder = input("Enter data folder name (default: data): ")
     builds_folder = input("Enter builds folder name(default: builds): ")
+
+    # FIXME: config doesnt get updated
+
+    clear()
 
     # Write default values into config.cfg if users leaves input blank
     # If not blank write users input into config.cfg
@@ -89,18 +86,26 @@ def check_folders():
 def check_config():
     # Check if config.cfg exists, if not create default config
     if not os.path.isfile("config.cfg"):
-        print("Missing config file, please follow the setup wizard.")
+        print("Missing config file\n")
         write_default_config()
 
     # Check if config.cfg is empty, if true create default config
     if os.stat("config.cfg").st_size == 0:
-        print("Config file is empty, please follow the setup wizard.")
+        print("Config file is empty\n")
         write_default_config()
+
+    config.read_file(open("config.cfg"))
+
+    # Check if ftp values are empty in config.cfg
+    if config["ftp"]["use-ftps"] == "" or config["ftp"]["host"] == "" or config["ftp"]["username"] == "" or config["ftp"]["password"] == "":
+        ftp_setup()
+    else:
+        ftp_login()
 
 
 def ftp_setup():
     print("Please follow the setup wizard:\n")
-    use_ftps = input("Do you want use ftps instead of ftp? (y, n):  ")
+    use_ftps = input("Do you want use ftps instead of ftp? (y, n): ")
     if use_ftps == "y":
         config["ftp"]["use-ftps"] = "true"
     elif use_ftps == "n":
@@ -119,7 +124,6 @@ def ftp_setup():
         config.write(configfile)
 
     clear()
-    # FIXME: Don't call main here, call ftp_login() somehow
     main()
 
 
@@ -129,7 +133,7 @@ def ftp_login():
         try:
             ftp_login.ftp = FTP_TLS(config["ftp"]["host"])
         except:
-            print(f"Failed to reach host\n\nPlease enter ftp login information:")
+            print(f"Failed to reach host\n")
             ftp_setup()
 
         try:
@@ -139,14 +143,14 @@ def ftp_login():
             ftp_login.ftp.prot_p()
             ftp_login.ftp.cwd("/")
         except:
-            print("Failed to login\n\nPlease enter ftp login information:")
+            print("Failed to login\n")
             ftp_setup()
     # Use ftp
     elif config["ftp"]["use-ftps"] == "false":
         try:
             ftp_login.ftp = FTP(config["ftp"]["host"])
         except:
-            print("Failed to reach host\n\nPlease enter ftp login information:")
+            print("Failed to reach host\n")
             ftp_setup()
 
         try:
@@ -155,11 +159,11 @@ def ftp_login():
 
             ftp_login.ftp.cwd("/")
         except:
-            print("Failed to login\n\nPlease enter ftp login information:")
+            print("Failed to login\n")
             ftp_setup()
     else:
         # Start ftp_setup() because use-ftps is not set to a boolean in config.cfg
-        print("Invalid config file\n\nPlease enter ftp login information:")
+        print("Invalid config file\n")
         ftp_setup()
         return
 
@@ -259,12 +263,12 @@ def get_server_builds():
 
 
 def list_local_builds():
-    print("Local Builds:\n")
+    print("Local builds:\n")
     get_local_builds()
 
 
 def list_server_builds():
-    print("Server Builds:\n")
+    print("Server builds:\n")
     get_server_builds()
 
 
@@ -289,10 +293,11 @@ def extract_build(build):
 
         print(f"Restored [{build}] to [{main.data_folder}]\n")
     except Exception as e:
-        print(f"Failed to restore [{build}] to [{main.data_folder}]:\n{e}\n")
+        print(f"Failed to restore [{build}] to [{main.data_folder}]\n{e}\n")
 
 
 def create_build():
+    # TODO: Input validation
     print("Create build:\n")
 
     build_name = input("\nEnter build name: ")
@@ -321,16 +326,17 @@ def create_build():
         except Exception as e:
             clear()
             print(
-                f"Failed to create [{filename}] in [{main.builds_folder}]:\n{e}\n")
+                f"Failed to create [{filename}] in [{main.builds_folder}]\n{e}\n")
     elif create_backup == "n":
         clear()
         return
     else:
         clear()
-        print("Invalid input, please try again:\n")
+        print("Invalid input, please try again\n")
         create_build()
 
 
+# TODO: Input validation
 def restore_build():
     print("Choose which build to to restore:\n")
 
@@ -350,15 +356,16 @@ def restore_build():
         _system_version = parsed_string[4]
     except Exception as e:
         clear()
-        print(f"File doesn't use valid naming scheme:\n{e}\n")
+        print(f"File doesn't use valid naming scheme\n{e}\n")
         return
 
+    # FIXME:
     if selection == "0":
         clear()
         return
-    else:
+    elif 0 <= int(selection) <= len(build_list):
         # Extratct build
-        if _system_version == f"v{system_version}":
+        if _system_version == platform.system():
             extract_build(build)
         else:
             clear()
@@ -370,6 +377,10 @@ def restore_build():
             elif selection == "n":
                 clear()
                 return
+    else:
+        clear()
+        print("Invalid input\n")
+        restore_build()
 
 
 def upload_build():
@@ -392,7 +403,7 @@ def upload_build():
                 "STOR " + build, open(f"{main.builds_folder}/{build}", "rb"))
             print(f"Uploaded [{build}] to server\n")
         except Exception as e:
-            print(f"Failed to upload [{build}] to server:\n{e}\n")
+            print(f"Failed to upload [{build}] to server\n{e}\n")
 
 
 def download_build():
@@ -415,7 +426,7 @@ def download_build():
                 "RETR " + build, open(f"{main.builds_folder}/{build}", "wb").write)
             print(f"Downloaded [{build}] from server\n")
         except Exception as e:
-            print(f"Failed to download [{build}] from server:\n{e}\n")
+            print(f"Failed to download [{build}] from server\n{e}\n")
 
 
 def delete_local_build():
@@ -437,7 +448,7 @@ def delete_local_build():
             os.remove(f"{main.builds_folder}/{build}")
             print(f"Deleted [{build}] from hard drive\n")
         except Exception as e:
-            print(f"Failed to delete [{build}] from hard drive:\n{e}\n")
+            print(f"Failed to delete [{build}] from hard drive\n{e}\n")
 
 
 def delete_server_build():
@@ -459,7 +470,7 @@ def delete_server_build():
             ftp_login.ftp.delete(build)
             print(f"Deleted [{build}] from server\n")
         except Exception as e:
-            print(f"Failed to delete [{build}] from server:\n{e}\n")
+            print(f"Failed to delete [{build}] from server\n{e}\n")
 
 
 clear()
