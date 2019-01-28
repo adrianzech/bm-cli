@@ -1,5 +1,6 @@
 import os
 import sys
+import re
 import platform
 import shutil
 import pathlib
@@ -135,7 +136,6 @@ def ftp_setup():
 
 
 def ftp_login():
-    # TODO: Print exceptions instead of custom strings
     # Use ftps
     if config["ftp"]["use-ftps"] == "true":
         try:
@@ -366,15 +366,36 @@ def extract_build(build):
 
 
 def create_build():
-    # TODO: Input validation
     print("Create build:\n")
 
-    build_name = input("Enter build name: ")
-    build_version = input("Enter build version: ")
+    # Validate build name
+    valid_build_name = re.compile("[-.a-zA-Z0-9]+$")
+    name_validator = False
+    while name_validator == False:
+        build_name = input("\nEnter build name: ")
+
+        if (valid_build_name.match(build_name)):
+            name_validator = True
+        else:
+            clear()
+            print("Invalid input. Please use [- . A-Z a-z 0-9]\n")
+
+    # Validate build version
+    valid_build_version = re.compile("[.0-9]+$")
+    version_validator = False
+    while version_validator == False:
+        build_version = input("Enter build version: ")
+
+        if (valid_build_version.match(build_version)):
+            version_validator = True
+        else:
+            clear()
+            print("Invalid input. Please use [. 0-9]\n")
+
     system = os_menu()
 
     timestamp = "{0:%Y%m%d_%H%M}".format(datetime.datetime.now())
-    filename = f"{build_name}_v{build_version}_{timestamp}_{system}.zip"
+    filename = f"{build_name}_v{build_version}_{timestamp}_{system}"
 
     create_backup = input(f"Do you want to create [{filename}]? (y, n):")
 
