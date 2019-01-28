@@ -124,13 +124,24 @@ def ftp_setup():
     with open("config.cfg", "w") as configfile:
         config.write(configfile)
 
+    try:
+        ftp_login()
+    except Exception as e:
+        clear()
+        print(f"{e}\n")
+        ftp_setup()
+
+    clear()
+
 
 def ftp_login():
+    # TODO: Print exceptions instead of custom strings
     # Use ftps
     if config["ftp"]["use-ftps"] == "true":
         try:
             ftp_login.ftp = FTP_TLS(config["ftp"]["host"])
         except:
+            clear()
             print(f"Failed to reach host\n")
             ftp_setup()
 
@@ -141,6 +152,7 @@ def ftp_login():
             ftp_login.ftp.prot_p()
             ftp_login.ftp.cwd("/")
         except:
+            clear()
             print("Failed to login\n")
             ftp_setup()
     # Use ftp
@@ -148,6 +160,7 @@ def ftp_login():
         try:
             ftp_login.ftp = FTP(config["ftp"]["host"])
         except:
+            clear()
             print("Failed to reach host\n")
             ftp_setup()
 
@@ -157,6 +170,7 @@ def ftp_login():
 
             ftp_login.ftp.cwd("/")
         except:
+            clear()
             print("Failed to login\n")
             ftp_setup()
     else:
@@ -177,7 +191,7 @@ def start_menu():
     menu["[6]:"] = "Download build"
     menu["[7]:"] = "Delete local build"
     menu["[8]:"] = "Delete server build"
-    menu["[9]:"] = "Change ftp settings"
+    menu["[9]:"] = "Settings"
     menu["[0]:"] = "Exit"
 
     print("Build Manager\n")
@@ -205,9 +219,39 @@ def start_menu():
     elif selection == "8":
         delete_server_build()
     elif selection == "9":
-        ftp_setup()
+        settings_menu()
     elif selection == "0":
         sys.exit()
+    else:
+        print("Unknown Option Selected\n")
+
+
+def settings_menu():
+    menu = {}
+
+    menu["[1]:"] = "Change ftp settings"
+    menu["[2]:"] = "Change folder settings"
+
+    print("Settings\n")
+    for entry in menu:
+        print(entry, menu[entry])
+
+    selection = input("\nPlease Select: ")
+
+    clear()
+
+    if selection == "1":
+        try:
+            ftp_setup()
+            print("Successfully updated ftp settings\n")
+        except Exception as e:
+            print(e)
+    elif selection == "2":
+        try:
+            folders_setup()
+            print("Successfully updated folder settings\n")
+        except Exception as e:
+            print(e)
     else:
         print("Unknown Option Selected\n")
 
@@ -303,6 +347,7 @@ def create_build():
     system_input = input(
         f"Enter system version (default: {platform.system()}): ")
 
+    # TODO: Create system menu to choose from
     if system_input == "":
         system = platform.system()
     else:
