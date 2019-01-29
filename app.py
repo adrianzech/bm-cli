@@ -278,9 +278,7 @@ def os_menu():
     elif selection == "3":
         return("MacOS")
     else:
-        clear()
-        print("Unknown Option Selected, please try again\n")
-        create_build()
+        return
 
 
 def get_local_builds():
@@ -370,29 +368,35 @@ def create_build():
 
     # Validate build name
     valid_build_name = re.compile("[-.a-zA-Z0-9]+$")
-    name_validator = False
-    while name_validator == False:
-        build_name = input("\nEnter build name: ")
+    while True:
+        build_name = input("Enter build name: ")
 
         if (valid_build_name.match(build_name)):
-            name_validator = True
-        else:
-            clear()
-            print("Invalid input. Please use [- . A-Z a-z 0-9]\n")
+            break
+
+        clear()
+        print("Invalid input. Please use [- . A-Z a-z 0-9]\n")
 
     # Validate build version
     valid_build_version = re.compile("[.0-9]+$")
-    version_validator = False
-    while version_validator == False:
+    while True:
         build_version = input("Enter build version: ")
 
         if (valid_build_version.match(build_version)):
-            version_validator = True
-        else:
-            clear()
-            print("Invalid input. Please use [. 0-9]\n")
+            break
 
-    system = os_menu()
+        clear()
+        print("Invalid input. Please use [. 0-9]\n")
+
+    # Validate system
+    while True:
+        system = os_menu()
+
+        if not system == None:
+            break
+
+        clear()
+        print("Unknown Option Selected, please try again")
 
     timestamp = "{0:%Y%m%d_%H%M}".format(datetime.datetime.now())
     filename = f"{build_name}_v{build_version}_{timestamp}_{system}"
