@@ -43,25 +43,39 @@ def write_default_config():
 
 
 def folders_setup():
-    # TODO: Input validation
     clear()
     print("Please follow the setup wizard\n")
-    data_folder = input("Enter data folder name (default: data): ")
-    builds_folder = input("Enter builds folder name(default: builds): ")
+
+    # Validate folder name
+    valid_folder_name = re.compile("[-.a-zA-Z0-9]+$")
+
+    while True:
+        data_folder = input("Enter data folder name (default: data): ")
+
+        if data_folder == "":
+            config["folders"]["data-folder"] = "data"
+            break
+        elif (valid_folder_name.match(data_folder)):
+            config["folders"]["data-folder"] = data_folder
+            break
+
+        clear()
+        print("Invalid input. Please use [- . A-Z a-z 0-9]\n")
+
+    while True:
+        builds_folder = input("Enter builds folder name(default: builds): ")
+
+        if builds_folder == "":
+            config["folders"]["builds-folder"] = "builds"
+            break
+        elif (valid_folder_name.match(builds_folder)):
+            config["folders"]["builds-folder"] = builds_folder
+            break
+
+        clear()
+        print("Invalid input. Please use [- . A-Z a-z 0-9]\n")
 
     clear()
-
-    # Write default values into config.cfg if users leaves input blank
-    # If not blank write users input into config.cfg
-    if data_folder == "":
-        config["folders"]["data-folder"] = "data"
-    else:
-        config["folders"]["data-folder"] = data_folder
-
-    if builds_folder == "":
-        config["folders"]["builds-folder"] = "builds"
-    else:
-        config["folders"]["builds-folder"] = builds_folder
 
     # Check if folder already exists, if not create them
     if not os.path.isdir(config["folders"]["data-folder"]):
