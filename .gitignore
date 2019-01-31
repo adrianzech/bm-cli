@@ -1,5 +1,8 @@
 *.zip
 *.cfg
-.vscode/*
+client_secrets.json
+credentials.txt
+.vscode/
+__pycache__/
 data/
 builds/
