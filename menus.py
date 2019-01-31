@@ -4,10 +4,6 @@ import settings
 import functions
 
 
-def clear():
-    os.system("clear")
-
-
 def start_menu():
     menu = {}
 
@@ -27,7 +23,7 @@ def start_menu():
 
         selection = input("\nPlease Select: ")
 
-        clear()
+        functions.clear()
 
         if selection == "1":
             functions.create_build()
@@ -52,7 +48,7 @@ def start_menu():
         elif selection == "7":
             settings_menu()
         elif selection == "0":
-            clear()
+            functions.clear()
             sys.exit()
         else:
             print("Unknown Option Selected\n")
@@ -74,7 +70,7 @@ def service_menu():
         print("\nPress Enter to go back")
         selection = input("Please Select: ")
 
-        clear()
+        functions.clear()
 
         if selection in ("1", "2", "3", "4"):
             return(menu.get(selection))
@@ -123,7 +119,7 @@ def settings_menu():
         print("\nPress Enter to go back")
         selection = input("Please Select: ")
 
-        clear()
+        functions.clear()
 
         if selection in ("1", "2", "3", "4"):
             return(menu.get(selection))

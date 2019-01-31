@@ -3,12 +3,8 @@ import re
 import config
 
 
-def clear():
-    os.system("clear")
-
-
 def folders():
-    clear()
+    functions.clear()
     print("Please follow the setup wizard\n")
 
     valid_folder_name = re.compile("[-.a-zA-Z0-9]+$")
@@ -23,7 +19,7 @@ def folders():
             config.set_value("folders", "data-folder", data_folder)
             break
 
-        clear()
+        functions.clear()
         print("Invalid input. Please use [- . A-Z a-z 0-9]\n")
 
     while True:
@@ -36,10 +32,10 @@ def folders():
             config.set_value("folders", "builds-folder", builds_folder)
             break
 
-        clear()
+        functions.clear()
         print("Invalid input. Please use [- . A-Z a-z 0-9]\n")
 
-    clear()
+    functions.clear()
 
     # Check if folder already exists, if not create them
     if not os.path.isdir(config.get_folder('data')):

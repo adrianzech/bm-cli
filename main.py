@@ -2,19 +2,12 @@ import os
 import sys
 import menus
 import config
+import functions
 
 
-def main():
-    clear()
+functions.clear()
 
-    config.check_config()
-    config.check_folders()
+config.check_config()
+config.check_folders()
 
-    menus.start_menu()
-
-
-def clear():
-    os.system("clear")
-
-
-main()
+menus.start_menu()

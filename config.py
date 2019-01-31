@@ -27,6 +27,11 @@ def get_folder(folder):
         return(f"{folder} is not a valid argument, use 'data' or 'builds'\n")
 
 
+def write_config():
+    with open("config.cfg", "w") as configfile:
+        config.write(configfile)
+
+
 def write_default_config():
     config["folders"] = {
         "data-folder": "data",
@@ -51,8 +56,7 @@ def write_default_config():
         "token": ""
     }
 
-    with open("config.cfg", "w") as configfile:
-        config.write(configfile)
+    write_config()
 
 
 def check_config():
@@ -63,7 +67,7 @@ def check_config():
 
     # Check if config.cfg is empty, if true create default config
     if os.stat("config.cfg").st_size == 0:
-        print("Config file is empty\n")
+        print("Config file is empty, default config has been written\n")
         write_default_config()
 
     config.read_file(open("config.cfg"))
