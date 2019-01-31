@@ -6,10 +6,6 @@ import configparser
 config = configparser.ConfigParser()
 
 
-def clear():
-    os.system("clear")
-
-
 def get_value(section, key):
     return(config[section][key])
 
