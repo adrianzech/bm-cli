@@ -1,6 +1,7 @@
 import os
 import re
 import setup
+import menus
 import configparser
 
 config = configparser.ConfigParser()
@@ -79,3 +80,13 @@ def check_folders():
         setup.folders()
     else:
         return
+
+
+def check_services():
+    ftp = get_value("ftp", "enabled")
+    dropbox = get_value("dropbox", "enabled")
+    googledrive = get_value("googledrive", "enabled")
+
+    if ftp == "false" and dropbox == "false" and googledrive == "false":
+        print("No services have been enabled, please choose a service:\n")
+        print(menus.service_menu())

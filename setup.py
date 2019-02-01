@@ -50,25 +50,41 @@ def folders():
 
 
 def ftp():
-    print("Please follow the setup wizard:\n")
+    while True:
+        config.set_value("ftp", "enabled", "false")
+        config.write_config()
 
-    use_ftps = input("Do you want use ftps instead of ftp? (y, n): ")
-    if use_ftps in ("y", "Y"):
-        config.set_value("ftp", "use_ftps", "true")
-    elif use_ftps in ("n", "N"):
-        config.set_value("ftp", "use_ftps", "false")
-    else:
-        functions.clear()
-        print("Wrong input, please try again:\n")
+        print("Please follow the setup wizard:\n")
 
-    config.set_value("ftp", "host", input("Enter ftp host: "))
-    config.set_value("ftp", "username", input("Enter ftp username: "))
-    config.set_value("ftp", "password", getpass.getpass("Enter ftp password: "))
+        use_ftps = input("Do you want use ftps instead of ftp? (y, n): ")
+        if use_ftps in ("y", "Y"):
+            config.set_value("ftp", "use_ftps", "true")
+        elif use_ftps in ("n", "N"):
+            config.set_value("ftp", "use_ftps", "false")
+        else:
+            functions.clear()
+            print("Wrong input, please try again:\n")
 
-    config.write_config()
+        config.set_value("ftp", "host", input("Enter ftp host: "))
+        config.set_value("ftp", "username", input("Enter ftp username: "))
+        config.set_value("ftp", "password", getpass.getpass("Enter ftp password: "))
 
-    login.ftp()
-    functions.clear()
+        message = login.ftp()
+
+        if message == "success":
+
+            config.set_value("ftp", "enabled", "true")
+
+            config.write_config()
+            functions.clear()
+            print("Successfully logged in\n")
+            break
+        elif message == "host_error":
+            functions.clear()
+            print("Failed to reach host\n")
+        elif message == "login_error":
+            functions.clear()
+            print("Failed to login\n")
 
 
 def dropbox():

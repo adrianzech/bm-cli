@@ -6,16 +6,13 @@ from ftplib import FTP_TLS
 
 
 def ftp():
+    # TODO: Add custom ftp path
     # Use ftps
     if config.get_value("ftp", "protocol") == "ftps":
         try:
             ftps = FTP_TLS(config.get_value("ftp", "host"))
         except:
-            functions.clear()
-            config.set_value("ftp", "enabled", "false")
-            config.write_config()
-            print(f"Failed to reach host\n")
-            setup.ftp()
+            return("host_error")
 
         try:
             ftps.login(
@@ -26,23 +23,16 @@ def ftp():
             ftps.prot_p()
             ftps.cwd("/")
 
-            config.set_value("ftp", "enabled", "true")
-            config.write_config()
+            return("success")
         except:
-            functions.clear()
-            config.set_value("ftp", "enabled", "false")
-            config.write_config()
-            print("Failed to login\n")
-            setup.ftp()
+            return("login_error")
 
     # Use ftp
     if config.get_value("ftp", "protocol") == "ftp":
         try:
             ftp = FTP(config.get_value("ftp", "host"))
         except:
-            functions.clear()
-            print(f"Failed to reach host\n")
-            setup.ftp()
+            return("host_error")
 
         try:
             ftp.login(
@@ -51,7 +41,7 @@ def ftp():
             )
 
             ftp.cwd("/")
+
+            return("success")
         except:
-            functions.clear()
-            print("Failed to login\n")
-            setup.ftp()
+            return("login_error")
