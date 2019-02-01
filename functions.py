@@ -3,9 +3,11 @@ import re
 import shutil
 import menus
 import config
+import login
 import platform
 import datetime
 import pathlib
+import dropbox
 
 
 def clear():
@@ -146,6 +148,8 @@ def list_builds(service):
         build_list = []
         build_menu = {}
 
+        print("Local builds:\n")
+
         # Loop through config.get_folder('builds') and put all ".zip" files into builds_list
         for f in os.listdir(config.get_folder('builds')):
             _filename, _file_extension = os.path.splitext(f)
@@ -164,11 +168,99 @@ def list_builds(service):
         return(build_list)
 
     elif service == "FTP":
-        print(f"List {service} builds\n")
+        build_list = []
+        build_menu = {}
+
+        print("FTP builds:\n")
+
+        builds = []
+        # Put all  files on server into builds
+        login.ftp_login().retrlines("NLST ", builds.append)
+
+        # Loop through builds and put all ".zip" files into builds_list
+        for file in builds:
+            _filename, _file_extension = os.path.splitext(file)
+            if _file_extension == ".zip":
+                build_list.append(file)
+
+        # Loop through builds_list and create and entry in build_menu for every item
+        for index, build in enumerate(build_list):
+            build_menu[index + 1] = build
+
+        # Create menu with every entry in build_menu
+        for entry in build_menu:
+            print(f"{[entry]}: {build_menu[entry]}")
+        print("\n")
+
+        return(build_list)
+
     elif service == "Dropbox":
-        print(f"List {service} builds\n")
+        # TODO: Store dropbox login in variable
+        build_list = []
+        build_menu = {}
+
+        print("Dropbox builds:\n")
+
+        metadata = login.dropbox_login().files_list_folder(path="")
+
+        for file in metadata.entries:
+            _filename, _file_extension = os.path.splitext(file.name)
+            if _file_extension == ".zip":
+                build_list.append(file.name)
+
+        # Loop through builds_list and create and entry in build_menu for every item
+        for index, build in enumerate(build_list):
+            build_menu[index + 1] = build
+
+        # Create menu with every entry in build_menu
+        for entry in build_menu:
+            print(f"{[entry]}: {build_menu[entry]}")
+        print("\n")
+
+        return(build_list)
+
     elif service == "Google Drive":
-        print(f"List {service} builds\n")
+        build_list = []
+        build_menu = {}
+
+        print("Google Drive builds:\n")
+
+        drive = login.googledrive_login()
+
+        upload_folder = "Kodi Build Manager"
+        upload_folder_id = None
+
+        # Check if folder exists. If not than create one with the given name
+        file_list = drive.ListFile({"q": "'root' in parents and trashed=false"}).GetList()
+        for file_folder in file_list:
+            if file_folder["title"] == upload_folder:
+                upload_folder_id = file_folder["id"]
+                break
+            else:
+                # If there is no mathing folder, create a new one
+                file_new_folder = drive.CreateFile({"title": upload_folder,
+                                                    "mimeType": "application/vnd.google-apps.folder"})
+                file_new_folder.Upload()
+                break
+
+        # Auto-iterate through all files in the root folder.
+        file_list = drive.ListFile({'q': f"'{upload_folder_id}' in parents and trashed=false"}).GetList()
+        for file in file_list:
+            _file = file["title"]
+            _filename, _file_extension = os.path.splitext(_file)
+            if _file_extension == ".zip":
+                build_list.append(_file)
+
+        # Loop through builds_list and create and entry in build_menu for every item
+        for index, build in enumerate(build_list):
+            build_menu[index + 1] = build
+
+        # Create menu with every entry in build_menu
+        for entry in build_menu:
+            print(f"{[entry]}: {build_menu[entry]}")
+        print("\n")
+
+        return(build_list)
 
 
 def download(service):

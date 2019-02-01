@@ -69,22 +69,22 @@ def ftp():
         config.set_value("ftp", "username", input("Enter ftp username: "))
         config.set_value("ftp", "password", getpass.getpass("Enter ftp password: "))
 
-        message = login.ftp()
+        message = login.ftp_login()
+        print(message)
 
-        if message == "success":
-
+        if message == "host_error":
+            functions.clear()
+            print("Failed to reach host\n")
+        elif message == "login_error":
+            functions.clear()
+            print("Failed to login\n")
+        else:
             config.set_value("ftp", "enabled", "true")
 
             config.write_config()
             functions.clear()
             print("Successfully logged in\n")
             break
-        elif message == "host_error":
-            functions.clear()
-            print("Failed to reach host\n")
-        elif message == "login_error":
-            functions.clear()
-            print("Failed to login\n")
 
 
 def dropbox():

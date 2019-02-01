@@ -2,7 +2,11 @@ import os
 import re
 import setup
 import menus
+import login
 import configparser
+
+path = "config"
+config_file = "config/config.cfg"
 
 config = configparser.ConfigParser()
 
@@ -25,7 +29,7 @@ def get_folder(folder):
 
 
 def write_config():
-    with open("config.cfg", "w") as configfile:
+    with open(config_file, "w") as configfile:
         config.write(configfile)
 
 
@@ -49,8 +53,7 @@ def write_default_config():
     }
 
     config["googledrive"] = {
-        "enabled": "false",
-        "token": ""
+        "enabled": "false"
     }
 
     write_config()
@@ -58,16 +61,22 @@ def write_default_config():
 
 def check_config():
     # Check if config.cfg exists, if not create default config
-    if not os.path.isfile("config.cfg"):
+
+    if not os.path.isdir(path):
+        print("Missing config folder")
+        os.mkdir(path)
+        write_default_config()
+
+    if not os.path.isfile(config_file):
         print("Missing config file\n")
         write_default_config()
 
     # Check if config.cfg is empty, if true create default config
-    if os.stat("config.cfg").st_size == 0:
+    if os.stat(config_file).st_size == 0:
         print("Config file is empty, default config has been written\n")
         write_default_config()
 
-    config.read_file(open("config.cfg"))
+    config.read_file(open(config_file))
 
 
 def check_folders():
@@ -89,4 +98,11 @@ def check_services():
 
     if ftp == "false" and dropbox == "false" and googledrive == "false":
         print("No services have been enabled, please choose a service:\n")
-        print(menus.service_menu())
+
+        service = menus.service_menu("setup")
+        if service == "FTP":
+            setup.ftp()
+        elif service == "Dropbox":
+            setup.dropbox()
+        elif service == "Google Drive":
+            setup.googledrive()
