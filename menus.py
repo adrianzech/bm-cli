@@ -1,6 +1,6 @@
 import os
 import sys
-import settings
+import setup
 import functions
 
 
@@ -46,7 +46,8 @@ def start_menu():
             if not service == None:
                 functions.delete(service)
         elif selection == "7":
-            settings_menu()
+            setup.ftp()
+            # settings_menu()
         elif selection == "0":
             functions.clear()
             sys.exit()
@@ -57,6 +58,7 @@ def start_menu():
 def service_menu():
     menu = {}
 
+    # TODO: Don#t show "Local" in download or upload function
     menu["1"] = "Local"
     menu["2"] = "FTP"
     menu["3"] = "Dropbox"
@@ -76,8 +78,8 @@ def service_menu():
             return(menu.get(selection))
         elif selection == "":
             break
-        else:
-            print("Unknown Option Selected\n")
+
+        print("Unknown Option Selected\n")
 
 
 def system_menu():
@@ -125,8 +127,8 @@ def settings_menu():
             return(menu.get(selection))
         elif selection == "":
             break
-        else:
-            print("Unknown Option Selected\n")
+
+        print("Unknown Option Selected\n")
 
         # if selection == "1":
         #     print("folder settings\n")

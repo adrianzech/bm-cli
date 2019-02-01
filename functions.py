@@ -122,8 +122,7 @@ def restore_build():
             else:
                 clear()
                 print("Wrong system version\n")
-                selection = input(
-                    "Are you sure you want to restore the build? (y, n): ")
+                selection = input("Are you sure you want to restore the build? (y, n): ")
                 if selection in ("y", "Y"):
                     extract_build(build)
                 elif selection in ("n", "N"):

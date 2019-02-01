@@ -1,6 +1,9 @@
 import os
 import re
+import login
 import config
+import getpass
+import functions
 
 
 def folders():
@@ -43,12 +46,29 @@ def folders():
     if not os.path.isdir(config.get_folder('builds')):
         os.mkdir(config.get_folder('builds'))
 
-    with open("config.cfg", "w") as configfile:
-        config.write(configfile)
+    config.write_config()
 
 
 def ftp():
-    print("ftp settings")
+    print("Please follow the setup wizard:\n")
+
+    use_ftps = input("Do you want use ftps instead of ftp? (y, n): ")
+    if use_ftps in ("y", "Y"):
+        config.set_value("ftp", "use_ftps", "true")
+    elif use_ftps in ("n", "N"):
+        config.set_value("ftp", "use_ftps", "false")
+    else:
+        functions.clear()
+        print("Wrong input, please try again:\n")
+
+    config.set_value("ftp", "host", input("Enter ftp host: "))
+    config.set_value("ftp", "username", input("Enter ftp username: "))
+    config.set_value("ftp", "password", getpass.getpass("Enter ftp password: "))
+
+    config.write_config()
+
+    login.ftp()
+    functions.clear()
 
 
 def dropbox():

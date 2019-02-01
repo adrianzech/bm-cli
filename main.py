@@ -4,7 +4,6 @@ import menus
 import config
 import functions
 
-
 functions.clear()
 
 config.check_config()

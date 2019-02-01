@@ -1,6 +1,6 @@
 import os
 import re
-import settings
+import setup
 import configparser
 
 config = configparser.ConfigParser()
@@ -36,7 +36,7 @@ def write_default_config():
 
     config["ftp"] = {
         "enabled": "false",
-        "use-ftps": "true",
+        "protocol": "ftps",
         "host": "",
         "username": "",
         "password": ""
@@ -72,10 +72,10 @@ def check_config():
 def check_folders():
     # Check if data-folder and builds-folder are set in the config file
     if get_folder('data') == "" or get_folder('builds') == "":
-        settings.folders()
+        setup.folders()
 
     # Check if data-folder and builds-folder exits
     if not os.path.isdir(get_folder('data')) or not os.path.isdir(get_folder('builds')):
-        settings.folders()
+        setup.folders()
     else:
         return
