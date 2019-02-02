@@ -2,10 +2,11 @@ import config
 import setup
 import functions
 import dropbox
-from pydrive.auth import GoogleAuth
-from pydrive.drive import GoogleDrive
+import ftplib
 from ftplib import FTP
 from ftplib import FTP_TLS
+from pydrive.auth import GoogleAuth
+from pydrive.drive import GoogleDrive
 
 
 def ftp_login():
@@ -24,7 +25,12 @@ def ftp_login():
             )
 
             ftps.prot_p()
-            ftps.cwd("/")
+
+            try:
+                ftps.cwd(config.get_value("ftp", "path"))
+            except:
+                ftps.mkd(config.get_value("ftp", "path"))
+                ftps.cwd(config.get_value("ftp", "path"))
 
             return(ftps)
         except:
@@ -43,7 +49,11 @@ def ftp_login():
                 config.get_value("ftp", "password")
             )
 
-            ftp.cwd("/")
+            try:
+                ftp.cwd(config.get_value("ftp", "path"))
+            except:
+                ftp.mkd(config.get_value("ftp", "path"))
+                ftp.cwd(config.get_value("ftp", "path"))
 
             return(ftp)
         except:

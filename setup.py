@@ -51,16 +51,13 @@ def folders():
 
 def ftp():
     while True:
-        config.set_value("ftp", "enabled", "false")
-        config.write_config()
-
         print("Please follow the setup wizard:\n")
 
-        use_ftps = input("Do you want use ftps instead of ftp? (y, n): ")
-        if use_ftps in ("y", "Y"):
-            config.set_value("ftp", "use_ftps", "true")
-        elif use_ftps in ("n", "N"):
-            config.set_value("ftp", "use_ftps", "false")
+        protocol = input("Do you want use ftps instead of ftp? (y, n): ")
+        if protocol in ("y", "Y"):
+            config.set_value("ftp", "protocol", "ftps")
+        elif protocol in ("n", "N"):
+            config.set_value("ftp", "protocol", "ftp")
         else:
             functions.clear()
             print("Wrong input, please try again:\n")
@@ -68,6 +65,20 @@ def ftp():
         config.set_value("ftp", "host", input("Enter ftp host: "))
         config.set_value("ftp", "username", input("Enter ftp username: "))
         config.set_value("ftp", "password", getpass.getpass("Enter ftp password: "))
+
+        valid_path = re.compile("[-./a-zA-Z0-9]+$")
+        while True:
+            path = input("Enter ftp path (default: root): ")
+
+            if path == "":
+                config.set_value("ftp", "path", "/")
+                break
+            elif (valid_path.match(path)):
+                config.set_value("frp", "path", path)
+                break
+
+            functions.clear()
+            print("Invalid input. Please use [/ - . A-Z a-z 0-9]\n")
 
         message = login.ftp_login()
         print(message)
@@ -78,9 +89,11 @@ def ftp():
         elif message == "login_error":
             functions.clear()
             print("Failed to login\n")
+        elif message == "folder_error":
+            functions.clear()
+            print("Path does not exist\n")
         else:
             config.set_value("ftp", "enabled", "true")
-
             config.write_config()
             functions.clear()
             print("Successfully logged in\n")

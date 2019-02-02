@@ -44,7 +44,8 @@ def write_default_config():
         "protocol": "ftps",
         "host": "",
         "username": "",
-        "password": ""
+        "password": "",
+        "path": ""
     }
 
     config["dropbox"] = {
