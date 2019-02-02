@@ -16,7 +16,6 @@ def start_menu():
     menu["5"] = "Upload Build"
     menu["6"] = "Delete Builds"
     menu["7"] = "Settings"
-    menu["8"] = "Test Function"
     menu["0"] = "Exit"
 
     while True:
@@ -27,7 +26,6 @@ def start_menu():
         selection = input("\nPlease Select: ")
 
         functions.clear()
-
         if selection == "1":
             functions.create_build()
         if selection == "2":
@@ -50,8 +48,6 @@ def start_menu():
                 functions.delete(service)
         elif selection == "7":
             settings_menu()
-        elif selection == "8":
-            login.googledrive_login()
         elif selection == "0":
             functions.clear()
             sys.exit()
@@ -168,12 +164,6 @@ def settings_menu():
         selection = input("Please Select: ")
 
         functions.clear()
-
-        # if selection in ("1", "2", "3", "4"):
-        #     return(menu.get(selection))
-        # elif selection == "":
-        #     break
-
         print("Unknown option selected\n")
 
         if selection == "1":

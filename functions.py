@@ -131,8 +131,8 @@ def download(service):
     print(f"Download build from {service}\n")
     # region [FTP]
     if service == "FTP":
+        build_list = list_builds(service)
         while True:
-            build_list = list_builds(service)
             print("Press Enter to go back")
             selection = input("Please Select: ")
 
@@ -141,25 +141,22 @@ def download(service):
                     build = build_list[int(selection) - 1]
                     clear()
                     try:
-                        login.ftp_login().retrbinary("RETR " + build, open(f"{config.get_folder('builds')}/{build}", "wb").write)
+                        login.ftp_login().retrbinary("STOR " + build, open(f"{config.get_folder('builds')}/{build}", "wb").write)
                         print(f"Downloaded {build} from {service}\n")
                         break
                     except:
                         print(f"Failed to download {build} from {service}\n")
-                else:
-                    clear()
-                    print("Invalid input\n")
+                        break
             elif selection == "":
                 clear()
                 return
-            else:
-                clear()
-                print("Invalid input\n")
+            clear()
+            print("Invalid Input, please try again\n")
     # endregion
     # region [Dropbox]
     elif service == "Dropbox":
+        build_list = list_builds(service)
         while True:
-            build_list = list_builds(service)
             print("Press Enter to go back")
             selection = input("Please Select: ")
 
@@ -173,20 +170,17 @@ def download(service):
                         break
                     except:
                         print(f"Failed to download {build} from {service}\n")
-                else:
-                    clear()
-                    print("Invalid input\n")
+                        break
             elif selection == "":
                 clear()
                 return
-            else:
-                clear()
-                print("Invalid input\n")
+            clear()
+            print("Invalid Input, please try again\n")
     # endregion
     # region [Google Drive]
     elif service == "Google Drive":
+        build_list = list_builds(service)
         while True:
-            build_list = list_builds(service)
             print("Press Enter to go back")
             selection = input("Please Select: ")
 
@@ -200,15 +194,12 @@ def download(service):
                         break
                     except:
                         print(f"Failed to download {build} from {service}\n")
-                else:
-                    clear()
-                    print("Invalid input\n")
+                        break
             elif selection == "":
                 clear()
                 return
-            else:
-                clear()
-                print("Invalid input\n")
+            clear()
+            print("Invalid Input, please try again\n")
     # endregion
 
 
@@ -216,8 +207,8 @@ def upload(service):
     print(f"Upload build to {service}\n")
     # region [FTP]
     if service == "FTP":
+        build_list = list_builds("Local")
         while True:
-            build_list = list_builds("Local")
             print("Press Enter to go back")
             selection = input("Please Select: ")
 
@@ -225,26 +216,23 @@ def upload(service):
                 if 1 <= int(selection) <= (len(build_list)):
                     build = build_list[int(selection) - 1]
                     clear()
-                    try:
-                        login.ftp_login().ftp.storbinary("STOR " + build, open(f"{config.get_folder('builds')}/{build}", "rb"))
-                        print(f"Uploaded {build} from {service}\n")
-                        break
-                    except:
-                        print(f"Failed to upload {build} from {service}\n")
-                else:
-                    clear()
-                    print("Invalid input\n")
+                    # try:
+                    login.ftp_login().storbinary("STOR " + build, open(f"{config.get_folder('builds')}/{build}", "rb"))
+                    print(f"Uploaded {build} to {service}\n")
+                    break
+                    # except:
+                    #     print(f"Failed to upload {build} to {service}\n")
+                    #     break
             elif selection == "":
                 clear()
                 return
-            else:
-                clear()
-                print("Invalid input\n")
+            clear()
+            print("Invalid Input, please try again\n")
     # endregion
     # region [Dropbox]
     elif service == "Dropbox":
+        build_list = list_builds("Local")
         while True:
-            build_list = list_builds("Local")
             print("Press Enter to go back")
             selection = input("Please Select: ")
 
@@ -256,24 +244,21 @@ def upload(service):
                         file = open(f"{config.get_folder('builds')}/{build}", "rb")
                         login.dropbox_login().files_upload(file.read(), f"/{build}")
                         file.close()
-                        print(f"Uploaded {build} from {service}\n")
+                        print(f"Uploaded {build} to {service}\n")
                         break
                     except:
-                        print(f"Failed to upload {build} from {service}\n")
-                else:
-                    clear()
-                    print("Invalid input\n")
+                        print(f"Failed to upload {build} to {service}\n")
+                        break
             elif selection == "":
                 clear()
                 return
-            else:
-                clear()
-                print("Invalid input\n")
+            clear()
+            print("Invalid Input, please try again\n")
     # endregion
     # region [Google Drive]
     elif service == "Google Drive":
+        build_list = list_builds("Local")
         while True:
-            build_list = list_builds("Local")
             print("Press Enter to go back")
             selection = input("Please Select: ")
 
@@ -287,19 +272,16 @@ def upload(service):
                         file = drive.CreateFile(metadata={"title": build, "parents": [{"kind": "drive#fileLink", "id": upload_folder_id}]})
                         file.SetContentFile(f"{config.get_folder('builds')}/{build}")
                         file.Upload()
-                        print(f"Uploaded {build} from {service}\n")
+                        print(f"Uploaded {build} to {service}\n")
                         break
                     except:
-                        print(f"Failed to upload {build} from {service}\n")
-                else:
-                    clear()
-                    print("Invalid input\n")
+                        print(f"Failed to upload {build} to {service}\n")
+                        break
             elif selection == "":
                 clear()
                 return
-            else:
-                clear()
-                print("Invalid input\n")
+            clear()
+            print("Invalid Input, please try again\n")
     # endregion
 
 
@@ -307,8 +289,8 @@ def delete(service):
     print(f"Delete build from {service}\n")
     # region [Local]
     if service == "Local":
+        build_list = list_builds(service)
         while True:
-            build_list = list_builds(service)
             print("Press Enter to go back")
             selection = input("Please Select: ")
 
@@ -322,20 +304,17 @@ def delete(service):
                         break
                     except:
                         print(f"Failed to delete {build} from {service}\n")
-                else:
-                    clear()
-                    print("Invalid input\n")
+                        break
             elif selection == "":
                 clear()
                 return
-            else:
-                clear()
-                print("Invalid input\n")
+            clear()
+            print("Invalid Input, please try again\n")
     # endregion
     # region [FTP]
     elif service == "FTP":
+        build_list = list_builds(service)
         while True:
-            build_list = list_builds(service)
             print("Press Enter to go back")
             selection = input("Please Select: ")
 
@@ -349,20 +328,17 @@ def delete(service):
                         break
                     except:
                         print(f"Failed to delete {build} from {service}\n")
-                else:
-                    clear()
-                    print("Invalid input\n")
+                        break
             elif selection == "":
                 clear()
                 return
-            else:
-                clear()
-                print("Invalid input\n")
+            clear()
+            print("Invalid Input, please try again\n")
     # endregion
     # region [Dropbox]
     elif service == "Dropbox":
+        build_list = list_builds(service)
         while True:
-            build_list = list_builds(service)
             print("Press Enter to go back")
             selection = input("Please Select: ")
 
@@ -376,20 +352,16 @@ def delete(service):
                         break
                     except:
                         print(f"Failed to delete {build} from {service}\n")
-                else:
-                    clear()
-                    print("Invalid input\n")
             elif selection == "":
                 clear()
                 return
-            else:
-                clear()
-                print("Invalid input\n")
+            clear()
+            print("Invalid Input, please try again\n")
     # endregion
     # region [Google Drive]
     elif service == "Google Drive":
+        build_list = list_builds(service)
         while True:
-            build_list = list_builds(service)
             print("Press Enter to go back")
             selection = input("Please Select: ")
 
@@ -403,15 +375,12 @@ def delete(service):
                         break
                     except:
                         print(f"Failed to delete {build} from {service}\n")
-                else:
-                    clear()
-                    print("Invalid input\n")
+                        break
             elif selection == "":
                 clear()
                 return
-            else:
-                clear()
-                print("Invalid input\n")
+            clear()
+            print("Invalid Input, please try again\n")
     # endregion
 
 
@@ -431,59 +400,50 @@ def extract_build(build):
 
     # Extract build into config.get_folder('data')
     try:
-        shutil.unpack_archive(
-            f"{config.get_folder('builds')}/{build}", config.get_folder('data'), "zip")
-
+        shutil.unpack_archive(f"{config.get_folder('builds')}/{build}", config.get_folder('data'), "zip")
         print(f"Restored {build}\n")
     except:
         print(f"Failed to restore {build}\n")
 
 
 def restore_build():
-    # TODO: While loop that shit
     print("Choose which build to to restore:\n")
-
     build_list = list_builds("Local")
 
-    print("Leave blank to go back")
-    selection = input("\nPlease Select: ")
+    while True:
+        print("Leave blank to go back")
+        selection = input("\nPlease Select: ")
 
-    if selection.isdigit():
-        if 1 <= int(selection) <= (len(build_list)):
-            build = build_list[int(selection) - 1]
+        if selection.isdigit():
+            if 1 <= int(selection) <= (len(build_list)):
+                build = build_list[int(selection) - 1]
 
-            # Parse build name into diffrent variables and store them in a array
-            parsed_string = pathlib.Path(
-                f"{config.get_folder('builds')}/{build}").stem.split("_")
+                # Parse build name into diffrent variables and store them in a array
+                parsed_string = pathlib.Path(
+                    f"{config.get_folder('builds')}/{build}").stem.split("_")
 
-            # Check if system version matches with build file
-            try:
-                _system_version = parsed_string[4]
-            except:
-                clear()
-                print(f"File doesn't use valid naming scheme\n")
-                return
-
-            # Extratct build
-            if _system_version == platform.system():
-                extract_build(build)
-            else:
-                clear()
-                print("Wrong system version\n")
-                selection = input("Are you sure you want to restore the build? (y, n): ")
-                if selection in ("y", "Y"):
-                    extract_build(build)
-                elif selection in ("n", "N"):
+                # Check if system version matches with build file
+                try:
+                    _system_version = parsed_string[4]
+                except:
                     clear()
+                    print(f"File doesn't use valid naming scheme\n")
                     return
-        else:
+
+                # Extratct build
+                if _system_version == platform.system():
+                    extract_build(build)
+                else:
+                    clear()
+                    print("Wrong system version\n")
+                    selection = input("Are you sure you want to restore the build? (y, n): ")
+                    if selection in ("y", "Y"):
+                        extract_build(build)
+                    elif selection in ("n", "N"):
+                        clear()
+                        return
+        elif selection == "":
             clear()
-            print("Invalid input, please try again\n")
-            restore_build()
-    elif selection == "":
+            return
         clear()
-        return
-    else:
-        clear()
-        print("Invalid input, please try again\n")
-        restore_build()
+        print("Invalid Input, please try again\n")
