@@ -188,3 +188,16 @@ def settings_menu():
             break
         else:
             print("Unknown option selected\n")
+
+
+def create_build_menu(build_list):
+    build_menu = {}
+
+    # Loop through builds_list and create and entry in build_menu for every item
+    for index, build in enumerate(build_list):
+        build_menu[index + 1] = build
+
+    # Create menu with every entry in build_menu
+    for entry in build_menu:
+        print(f"{[entry]}: {build_menu[entry]}")
+    print("\n")

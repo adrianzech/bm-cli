@@ -22,7 +22,6 @@ def create_build():
         build_name = input("Enter build name: ")
         if (valid_build_name.match(build_name)):
             break
-
         clear()
         print("Invalid input, please use [- . A-Z a-z 0-9]\n")
 
@@ -31,7 +30,6 @@ def create_build():
         build_version = input("Enter build version: ")
         if (valid_build_version.match(build_version)):
             break
-
         clear()
         print("Invalid input, please use [. 0-9]\n")
 
@@ -39,7 +37,6 @@ def create_build():
         system = menus.system_menu()
         if not system == None:
             break
-
         clear()
         print("Unknown option selected, please try again")
 
@@ -48,17 +45,15 @@ def create_build():
 
     while True:
         create_backup = input(f"Do you want to create {filename}? (y, n):")
+
         if create_backup in ("y", "Y"):
+            clear()
             try:
                 # Create zip file with all contents from config.get_folder('data')
-                shutil.make_archive(
-                    f"{config.get_folder('builds')}/{filename}", "zip", config.get_folder('data'))
-
-                clear()
+                shutil.make_archive(f"{config.get_folder('builds')}/{filename}", "zip", config.get_folder('data'))
                 print(f"Created {filename}\n")
                 break
             except:
-                clear()
                 print(f"Failed to create {filename}\n")
                 break
         elif create_backup in ("n", "N"):
@@ -67,7 +62,357 @@ def create_build():
 
         clear()
         print("Invalid input, please try again\n")
-        create_build()
+
+
+def list_builds(service):
+    print(f"{service} builds:\n")
+    # region [Local]
+    if service == "Local":
+        build_list = []
+
+        for file in os.listdir(config.get_folder('builds')):
+            _filename, _file_extension = os.path.splitext(file)
+            if _file_extension == ".zip":
+                build_list.append(file)
+
+        menus.create_build_menu(build_list)
+        return(build_list)
+    # endregion
+    # region [FTP]
+    elif service == "FTP":
+        build_list = []
+        file_list = []
+
+        login.ftp_login().retrlines("NLST ", file_list.append)
+
+        for file in file_list:
+            _filename, _file_extension = os.path.splitext(file)
+            if _file_extension == ".zip":
+                build_list.append(file)
+
+        menus.create_build_menu(build_list)
+        return(build_list)
+    # endregion
+    # region [Dropbox]
+    elif service == "Dropbox":
+        build_list = []
+
+        metadata = login.dropbox_login().files_list_folder(path="")
+
+        for file in metadata.entries:
+            _filename, _file_extension = os.path.splitext(file.name)
+            if _file_extension == ".zip":
+                build_list.append(file.name)
+
+        menus.create_build_menu(build_list)
+        return(build_list)
+    # endregion
+    # region [Google Drive]
+    elif service == "Google Drive":
+        build_list = []
+
+        drive = login.googledrive_login()
+        upload_folder_id = login.get_folder_id()
+
+        file_list = drive.ListFile({'q': f"'{upload_folder_id}' in parents and trashed=false"}).GetList()
+
+        for file in file_list:
+            _file = file["title"]
+            _filename, _file_extension = os.path.splitext(_file)
+            if _file_extension == ".zip":
+                build_list.append(_file)
+
+        menus.create_build_menu(build_list)
+        return(build_list)
+    # endregion
+
+
+def download(service):
+    print(f"Download build from {service}\n")
+    # region [FTP]
+    if service == "FTP":
+        while True:
+            build_list = list_builds(service)
+            print("Press Enter to go back")
+            selection = input("Please Select: ")
+
+            if selection.isdigit():
+                if 1 <= int(selection) <= (len(build_list)):
+                    build = build_list[int(selection) - 1]
+                    clear()
+                    try:
+                        login.ftp_login().retrbinary("RETR " + build, open(f"{config.get_folder('builds')}/{build}", "wb").write)
+                        print(f"Downloaded {build} from {service}\n")
+                        break
+                    except:
+                        print(f"Failed to download {build} from {service}\n")
+                else:
+                    clear()
+                    print("Invalid input\n")
+            elif selection == "":
+                clear()
+                return
+            else:
+                clear()
+                print("Invalid input\n")
+    # endregion
+    # region [Dropbox]
+    elif service == "Dropbox":
+        while True:
+            build_list = list_builds(service)
+            print("Press Enter to go back")
+            selection = input("Please Select: ")
+
+            if selection.isdigit():
+                if 1 <= int(selection) <= (len(build_list)):
+                    build = build_list[int(selection) - 1]
+                    clear()
+                    try:
+                        # TODO: Download from Dropbox
+                        print(f"Downloaded {build} from {service}\n")
+                        break
+                    except:
+                        print(f"Failed to download {build} from {service}\n")
+                else:
+                    clear()
+                    print("Invalid input\n")
+            elif selection == "":
+                clear()
+                return
+            else:
+                clear()
+                print("Invalid input\n")
+    # endregion
+    # region [Google Drive]
+    elif service == "Google Drive":
+        while True:
+            build_list = list_builds(service)
+            print("Press Enter to go back")
+            selection = input("Please Select: ")
+
+            if selection.isdigit():
+                if 1 <= int(selection) <= (len(build_list)):
+                    build = build_list[int(selection) - 1]
+                    clear()
+                    try:
+                        # TODO: Download from Google Drive
+                        print(f"Downloaded {build} from {service}\n")
+                        break
+                    except:
+                        print(f"Failed to download {build} from {service}\n")
+                else:
+                    clear()
+                    print("Invalid input\n")
+            elif selection == "":
+                clear()
+                return
+            else:
+                clear()
+                print("Invalid input\n")
+    # endregion
+
+
+def upload(service):
+    print(f"Upload build to {service}\n")
+    # region [FTP]
+    if service == "FTP":
+        while True:
+            build_list = list_builds("Local")
+            print("Press Enter to go back")
+            selection = input("Please Select: ")
+
+            if selection.isdigit():
+                if 1 <= int(selection) <= (len(build_list)):
+                    build = build_list[int(selection) - 1]
+                    clear()
+                    try:
+                        login.ftp_login().ftp.storbinary("STOR " + build, open(f"{config.get_folder('builds')}/{build}", "rb"))
+                        print(f"Uploaded {build} from {service}\n")
+                        break
+                    except:
+                        print(f"Failed to upload {build} from {service}\n")
+                else:
+                    clear()
+                    print("Invalid input\n")
+            elif selection == "":
+                clear()
+                return
+            else:
+                clear()
+                print("Invalid input\n")
+    # endregion
+    # region [Dropbox]
+    elif service == "Dropbox":
+        while True:
+            build_list = list_builds("Local")
+            print("Press Enter to go back")
+            selection = input("Please Select: ")
+
+            if selection.isdigit():
+                if 1 <= int(selection) <= (len(build_list)):
+                    build = build_list[int(selection) - 1]
+                    clear()
+                    try:
+                        file = open(f"{config.get_folder('builds')}/{build}", "rb")
+                        login.dropbox_login().files_upload(file.read(), f"/{build}")
+                        file.close()
+                        print(f"Uploaded {build} from {service}\n")
+                        break
+                    except:
+                        print(f"Failed to upload {build} from {service}\n")
+                else:
+                    clear()
+                    print("Invalid input\n")
+            elif selection == "":
+                clear()
+                return
+            else:
+                clear()
+                print("Invalid input\n")
+    # endregion
+    # region [Google Drive]
+    elif service == "Google Drive":
+        while True:
+            build_list = list_builds("Local")
+            print("Press Enter to go back")
+            selection = input("Please Select: ")
+
+            if selection.isdigit():
+                if 1 <= int(selection) <= (len(build_list)):
+                    build = build_list[int(selection) - 1]
+                    clear()
+                    try:
+                        drive = login.googledrive_login()
+                        upload_folder_id = login.get_folder_id()
+                        file = drive.CreateFile(metadata={"title": build, "parents": [{"kind": "drive#fileLink", "id": upload_folder_id}]})
+                        file.SetContentFile(f"{config.get_folder('builds')}/{build}")
+                        file.Upload()
+                        print(f"Uploaded {build} from {service}\n")
+                        break
+                    except:
+                        print(f"Failed to upload {build} from {service}\n")
+                else:
+                    clear()
+                    print("Invalid input\n")
+            elif selection == "":
+                clear()
+                return
+            else:
+                clear()
+                print("Invalid input\n")
+    # endregion
+
+
+def delete(service):
+    print(f"Delete build from {service}\n")
+    # region [Local]
+    if service == "Local":
+        while True:
+            build_list = list_builds(service)
+            print("Press Enter to go back")
+            selection = input("Please Select: ")
+
+            if selection.isdigit():
+                if 1 <= int(selection) <= (len(build_list)):
+                    build = build_list[int(selection) - 1]
+                    clear()
+                    try:
+                        os.remove(f"{config.get_folder('builds')}/{build}")
+                        print(f"Deleted {build} from {service}\n")
+                        break
+                    except:
+                        print(f"Failed to delete {build} from {service}\n")
+                else:
+                    clear()
+                    print("Invalid input\n")
+            elif selection == "":
+                clear()
+                return
+            else:
+                clear()
+                print("Invalid input\n")
+    # endregion
+    # region [FTP]
+    elif service == "FTP":
+        while True:
+            build_list = list_builds(service)
+            print("Press Enter to go back")
+            selection = input("Please Select: ")
+
+            if selection.isdigit():
+                if 1 <= int(selection) <= (len(build_list)):
+                    build = build_list[int(selection) - 1]
+                    clear()
+                    try:
+                        login.ftp_login().delete(build)
+                        print(f"Deleted {build} from {service}\n")
+                        break
+                    except:
+                        print(f"Failed to delete {build} from {service}\n")
+                else:
+                    clear()
+                    print("Invalid input\n")
+            elif selection == "":
+                clear()
+                return
+            else:
+                clear()
+                print("Invalid input\n")
+    # endregion
+    # region [Dropbox]
+    elif service == "Dropbox":
+        while True:
+            build_list = list_builds(service)
+            print("Press Enter to go back")
+            selection = input("Please Select: ")
+
+            if selection.isdigit():
+                if 1 <= int(selection) <= (len(build_list)):
+                    build = build_list[int(selection) - 1]
+                    clear()
+                    try:
+                        # TODO: Delete from Dropbox
+                        print(f"Deleted {build} from {service}\n")
+                        break
+                    except:
+                        print(f"Failed to delete {build} from {service}\n")
+                else:
+                    clear()
+                    print("Invalid input\n")
+            elif selection == "":
+                clear()
+                return
+            else:
+                clear()
+                print("Invalid input\n")
+    # endregion
+    # region [Google Drive]
+    elif service == "Google Drive":
+        while True:
+            build_list = list_builds(service)
+            print("Press Enter to go back")
+            selection = input("Please Select: ")
+
+            if selection.isdigit():
+                if 1 <= int(selection) <= (len(build_list)):
+                    build = build_list[int(selection) - 1]
+                    clear()
+                    try:
+                        # TODO: Delete from Google Drive
+                        print(f"Deleted {build} from {service}\n")
+                        break
+                    except:
+                        print(f"Failed to delete {build} from {service}\n")
+                else:
+                    clear()
+                    print("Invalid input\n")
+            elif selection == "":
+                clear()
+                return
+            else:
+                clear()
+                print("Invalid input\n")
+    # endregion
 
 
 def extract_build(build):
@@ -95,6 +440,7 @@ def extract_build(build):
 
 
 def restore_build():
+    # TODO: While loop that shit
     print("Choose which build to to restore:\n")
 
     build_list = list_builds("Local")
@@ -141,162 +487,3 @@ def restore_build():
         clear()
         print("Invalid input, please try again\n")
         restore_build()
-
-
-def list_builds(service):
-    if service == "Local":
-        build_list = []
-        build_menu = {}
-
-        print("Local builds:\n")
-
-        # Loop through config.get_folder('builds') and put all ".zip" files into builds_list
-        for f in os.listdir(config.get_folder('builds')):
-            _filename, _file_extension = os.path.splitext(f)
-            if _file_extension == ".zip":
-                build_list.append(f)
-
-        # Loop through builds_list and create and entry in build_menu for every item
-        for index, build in enumerate(build_list):
-            build_menu[index + 1] = build
-
-        # Create menu with every entry in build_menu
-        for entry in build_menu:
-            print(f"{[entry]}: {build_menu[entry]}")
-        print("\n")
-
-        return(build_list)
-
-    elif service == "FTP":
-        build_list = []
-        build_menu = {}
-
-        print("FTP builds:\n")
-
-        builds = []
-        # Put all  files on server into builds
-        login.ftp_login().retrlines("NLST ", builds.append)
-
-        # Loop through builds and put all ".zip" files into builds_list
-        for file in builds:
-            _filename, _file_extension = os.path.splitext(file)
-            if _file_extension == ".zip":
-                build_list.append(file)
-
-        # Loop through builds_list and create and entry in build_menu for every item
-        for index, build in enumerate(build_list):
-            build_menu[index + 1] = build
-
-        # Create menu with every entry in build_menu
-        for entry in build_menu:
-            print(f"{[entry]}: {build_menu[entry]}")
-        print("\n")
-
-        return(build_list)
-
-    elif service == "Dropbox":
-        # TODO: Store dropbox login in variable
-        build_list = []
-        build_menu = {}
-
-        print("Dropbox builds:\n")
-
-        metadata = login.dropbox_login().files_list_folder(path="")
-
-        for file in metadata.entries:
-            _filename, _file_extension = os.path.splitext(file.name)
-            if _file_extension == ".zip":
-                build_list.append(file.name)
-
-        # Loop through builds_list and create and entry in build_menu for every item
-        for index, build in enumerate(build_list):
-            build_menu[index + 1] = build
-
-        # Create menu with every entry in build_menu
-        for entry in build_menu:
-            print(f"{[entry]}: {build_menu[entry]}")
-        print("\n")
-
-        return(build_list)
-
-    elif service == "Google Drive":
-        build_list = []
-        build_menu = {}
-
-        print("Google Drive builds:\n")
-
-        drive = login.googledrive_login()
-
-        upload_folder = "Kodi Build Manager"
-        upload_folder_id = None
-
-        # Check if folder exists. If not than create one with the given name
-        file_list = drive.ListFile({"q": "'root' in parents and trashed=false"}).GetList()
-        for file_folder in file_list:
-            if file_folder["title"] == upload_folder:
-                upload_folder_id = file_folder["id"]
-                break
-            else:
-                # If there is no mathing folder, create a new one
-                file_new_folder = drive.CreateFile({"title": upload_folder,
-                                                    "mimeType": "application/vnd.google-apps.folder"})
-                file_new_folder.Upload()
-                break
-
-        # Auto-iterate through all files in the root folder.
-        file_list = drive.ListFile({'q': f"'{upload_folder_id}' in parents and trashed=false"}).GetList()
-        for file in file_list:
-            _file = file["title"]
-            _filename, _file_extension = os.path.splitext(_file)
-            if _file_extension == ".zip":
-                build_list.append(_file)
-
-        # Loop through builds_list and create and entry in build_menu for every item
-        for index, build in enumerate(build_list):
-            build_menu[index + 1] = build
-
-        # Create menu with every entry in build_menu
-        for entry in build_menu:
-            print(f"{[entry]}: {build_menu[entry]}")
-        print("\n")
-
-        return(build_list)
-
-
-def download(service):
-    if service == "Local":
-        print(f"Download build from {service}\n")
-    elif service == "FTP":
-        print(f"Download build from {service}\n")
-    elif service == "Dropbox":
-        print(f"Download build from {service}\n")
-    elif service == "Google Drive":
-        print(f"Download build from {service}\n")
-    else:
-        print(f"Something horrible happened")
-
-
-def upload(service):
-    if service == "Local":
-        print(f"Upload build to {service}\n")
-    elif service == "FTP":
-        print(f"Upload build to {service}\n")
-    elif service == "Dropbox":
-        print(f"Upload build to {service}\n")
-    elif service == "Google Drive":
-        print(f"Upload build to {service}\n")
-    else:
-        print(f"Something horrible happened")
-
-
-def delete(service):
-    if service == "Local":
-        print(f"Delete build from {service}\n")
-    elif service == "FTP":
-        print(f"Delete build from {service}\n")
-    elif service == "Dropbox":
-        print(f"Delete build from {service}\n")
-    elif service == "Google Drive":
-        print(f"Delete build from {service}\n")
-    else:
-        print(f"Something horrible happened")

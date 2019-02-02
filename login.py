@@ -71,3 +71,24 @@ def googledrive_login():
 
     drive = GoogleDrive(gauth)
     return(drive)
+
+
+def get_folder_id():
+    drive = googledrive_login()
+    upload_folder = "Kodi Build Manager"
+    upload_folder_id = None
+
+    # Check if folder exists. If not than create one with the given name
+    file_list = drive.ListFile({"q": "'root' in parents and trashed=false"}).GetList()
+    for file_folder in file_list:
+        if file_folder["title"] == upload_folder:
+            upload_folder_id = file_folder["id"]
+            break
+        else:
+            # If there is no mathing folder, create a new one
+            file_new_folder = drive.CreateFile({"title": upload_folder,
+                                                "mimeType": "application/vnd.google-apps.folder"})
+            file_new_folder.Upload()
+            break
+
+    return(upload_folder_id)
