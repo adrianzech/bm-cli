@@ -101,7 +101,16 @@ def ftp():
 
 
 def dropbox():
-    print("dropbox settings")
+    while True:
+        config.set_value("dropbox", "token", input("Enter Dropbox access token: "))
+        config.write_config()
+        functions.clear()
+        try:
+            login.dropbox_login()
+            print("Successfully logged in\n")
+            break
+        except:
+            print("Failed to log in\n")
 
 
 def googledrive():

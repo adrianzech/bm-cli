@@ -171,9 +171,9 @@ def settings_menu():
         elif selection == "2":
             setup.ftp()
         elif selection == "3":
-            print("dropbox settings\n")
+            setup.dropbox()
         elif selection == "4":
-            print("googledrive settings\n")
+            setup.googledrive()
         elif selection == "":
             break
         else:

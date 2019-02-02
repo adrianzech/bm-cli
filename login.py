@@ -10,7 +10,6 @@ from pydrive.drive import GoogleDrive
 
 
 def ftp_login():
-    # TODO: Add custom ftp path
     # Use ftps
     if config.get_value("ftp", "protocol") == "ftps":
         try:
@@ -62,6 +61,7 @@ def ftp_login():
 
 def dropbox_login():
     db = dropbox.Dropbox(config.get_value("dropbox", "token"))
+    db.users_get_current_account()
     return(db)
 
 
