@@ -134,8 +134,9 @@ def download(service):
     print(f"Download build from {service}\n")
     # region [FTP]
     if service == "FTP":
-        build_list = list_builds(service)
+        ftp = login.ftp_login()
         while True:
+            build_list = list_builds(service)
             print("Press Enter to go back")
             selection = input("Please Select: ")
 
@@ -144,7 +145,7 @@ def download(service):
                     build = build_list[int(selection) - 1]
                     clear()
                     try:
-                        login.ftp_login().retrbinary("STOR " + build, open(f"{config.get_folder('builds')}/{build}", "wb").write)
+                        ftp.retrbinary("STOR " + build, open(f"{config.get_folder('builds')}/{build}", "wb").write)
                         print(f"Downloaded {build} from {service}\n")
                         break
                     except:
@@ -158,8 +159,9 @@ def download(service):
     # endregion
     # region [Dropbox]
     elif service == "Dropbox":
-        build_list = list_builds(service)
+        db = login.dropbox_login()
         while True:
+            build_list = list_builds(service)
             print("Press Enter to go back")
             selection = input("Please Select: ")
 
@@ -168,7 +170,7 @@ def download(service):
                     build = build_list[int(selection) - 1]
                     clear()
                     try:
-                        # TODO: Download from Dropbox
+                        db.files_download_to_file(f"{config.get_folder('builds')}/{build}", "/" + build)
                         print(f"Downloaded {build} from {service}\n")
                         break
                     except:
@@ -182,9 +184,9 @@ def download(service):
     # endregion
     # region [Google Drive]
     elif service == "Google Drive":
-        build_list, build_id_list = list_builds(service)
         drive = login.googledrive_login()
         while True:
+            build_list, build_id_list = list_builds(service)
             print("Press Enter to go back")
             selection = input("Please Select: ")
 
@@ -213,8 +215,9 @@ def upload(service):
     print(f"Upload build to {service}\n")
     # region [FTP]
     if service == "FTP":
-        build_list = list_builds("Local")
+        ftp = login.ftp_login()
         while True:
+            build_list = list_builds("Local")
             print("Press Enter to go back")
             selection = input("Please Select: ")
 
@@ -222,13 +225,13 @@ def upload(service):
                 if 1 <= int(selection) <= (len(build_list)):
                     build = build_list[int(selection) - 1]
                     clear()
-                    # try:
-                    login.ftp_login().storbinary("STOR " + build, open(f"{config.get_folder('builds')}/{build}", "rb"))
-                    print(f"Uploaded {build} to {service}\n")
-                    break
-                    # except:
-                    #     print(f"Failed to upload {build} to {service}\n")
-                    #     break
+                    try:
+                        ftp.storbinary("STOR " + build, open(f"{config.get_folder('builds')}/{build}", "rb"))
+                        print(f"Uploaded {build} to {service}\n")
+                        break
+                    except:
+                        print(f"Failed to upload {build} to {service}\n")
+                        break
             elif selection == "":
                 clear()
                 return
@@ -237,8 +240,9 @@ def upload(service):
     # endregion
     # region [Dropbox]
     elif service == "Dropbox":
-        build_list = list_builds("Local")
+        db = login.dropbox_login()
         while True:
+            build_list = list_builds("Local")
             print("Press Enter to go back")
             selection = input("Please Select: ")
 
@@ -248,7 +252,7 @@ def upload(service):
                     clear()
                     try:
                         file = open(f"{config.get_folder('builds')}/{build}", "rb")
-                        login.dropbox_login().files_upload(file.read(), f"/{build}")
+                        db.files_upload(file.read(), f"/{build}")
                         file.close()
                         print(f"Uploaded {build} to {service}\n")
                         break
@@ -263,8 +267,10 @@ def upload(service):
     # endregion
     # region [Google Drive]
     elif service == "Google Drive":
-        build_list = list_builds("Local")
+        drive = login.googledrive_login()
+        upload_folder_id = login.get_folder_id()
         while True:
+            build_list = list_builds("Local")
             print("Press Enter to go back")
             selection = input("Please Select: ")
 
@@ -273,8 +279,6 @@ def upload(service):
                     build = build_list[int(selection) - 1]
                     clear()
                     try:
-                        drive = login.googledrive_login()
-                        upload_folder_id = login.get_folder_id()
                         file = drive.CreateFile(metadata={"title": build, "parents": [{"kind": "drive#fileLink", "id": upload_folder_id}]})
                         file.SetContentFile(f"{config.get_folder('builds')}/{build}")
                         file.Upload()
@@ -295,8 +299,8 @@ def delete(service):
     print(f"Delete build from {service}\n")
     # region [Local]
     if service == "Local":
-        build_list = list_builds(service)
         while True:
+            build_list = list_builds(service)
             print("Press Enter to go back")
             selection = input("Please Select: ")
 
@@ -319,8 +323,9 @@ def delete(service):
     # endregion
     # region [FTP]
     elif service == "FTP":
-        build_list = list_builds(service)
+        ftp = login.ftp_login()
         while True:
+            build_list = list_builds(service)
             print("Press Enter to go back")
             selection = input("Please Select: ")
 
@@ -329,7 +334,7 @@ def delete(service):
                     build = build_list[int(selection) - 1]
                     clear()
                     try:
-                        login.ftp_login().delete(build)
+                        ftp.delete(build)
                         print(f"Deleted {build} from {service}\n")
                         break
                     except:
@@ -343,8 +348,9 @@ def delete(service):
     # endregion
     # region [Dropbox]
     elif service == "Dropbox":
-        build_list = list_builds(service)
+        db = login.dropbox_login()
         while True:
+            build_list = list_builds(service)
             print("Press Enter to go back")
             selection = input("Please Select: ")
 
@@ -353,7 +359,7 @@ def delete(service):
                     build = build_list[int(selection) - 1]
                     clear()
                     try:
-                        # TODO: Delete from Dropbox
+                        db.files_delete("/" + build)
                         print(f"Deleted {build} from {service}\n")
                         break
                     except:
@@ -366,9 +372,9 @@ def delete(service):
     # endregion
     # region [Google Drive]
     elif service == "Google Drive":
-        build_list, build_id_list = list_builds(service)
         drive = login.googledrive_login()
         while True:
+            build_list, build_id_list = list_builds(service)
             print("Press Enter to go back")
             selection = input("Please Select: ")
 
