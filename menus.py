@@ -58,70 +58,47 @@ def start_menu():
 def service_menu(menu_type):
     menu = {}
 
-    ftp = config.get_value("ftp", "enabled")
-    dropbox = config.get_value("dropbox", "enabled")
-    googledrive = config.get_value("googledrive", "enabled")
+    local = ["Local"]
+    online = []
+
+    if config.get_value("ftp", "enabled") == "true":
+        local.append("FTP")
+        online.append("FTP")
+    if config.get_value("dropbox", "enabled") == "true":
+        local.append("Dropbox")
+        online.append("Dropbox")
+    if config.get_value("googledrive", "enabled") == "true":
+        local.append("Google Drive")
+        online.append("Google Drive")
 
     if menu_type == "local":
-        menu["L"] = "Local"
-        if ftp == "true":
-            menu["F"] = "FTP"
-        if dropbox == "true":
-            menu["D"] = "Dropbox"
-        if googledrive == "true":
-            menu["G"] = "Google Drive"
+        for i in range(len(local)):
+            menu[f"{i + 1}"] = local[i]
     elif menu_type == "online":
-        if ftp == "true":
-            menu["F"] = "FTP"
-        if dropbox == "true":
-            menu["D"] = "Dropbox"
-        if googledrive == "true":
-            menu["G"] = "Google Drive"
+        for i in range(len(online)):
+            menu[f"{i + 1}"] = online[i]
     elif menu_type == "setup":
-        menu["F"] = "FTP"
-        menu["D"] = "Dropbox"
-        menu["G"] = "Google Drive"
+        menu["1"] = "FTP"
+        menu["2"] = "Dropbox"
+        menu["3"] = "Google Drive"
 
     while True:
         print("Service Menu\n")
-        for entry in menu:
-            print(f"[{entry}]:", menu[entry])
+        for i, entry in enumerate(menu):
+            print(f"[{i + 1}]:", menu[entry])
 
         print("\nPress Enter to go back")
         selection = input("Please Select: ")
 
         functions.clear()
-        if menu_type == "local":
-            if selection in ("l", "L"):
-                return(menu.get(selection.upper()))
-            elif selection in ("f", "F") and ftp == "true":
-                return(menu.get(selection.upper()))
-            elif selection in ("d", "D") and dropbox == "true":
-                return(menu.get(selection.upper()))
-            elif selection in ("g", "G") and googledrive == "true":
-                return(menu.get(selection.upper()))
-            elif selection == "":
-                break
-            else:
-                print("Unknown option selected\n")
-        elif menu_type == "online":
-            if selection in ("f", "F") and ftp == "true":
-                return(menu.get(selection.upper()))
-            elif selection in ("d", "D") and dropbox == "true":
-                return(menu.get(selection.upper()))
-            elif selection in ("g", "G") and googledrive == "true":
-                return(menu.get(selection.upper()))
-            elif selection == "":
-                break
-            else:
-                print("Unknown option selected\n")
-        elif menu_type == "setup":
-            if selection.upper() in ("F", "D", "G"):
-                return(menu.get(selection.upper()))
-            elif selection == "":
-                break
-            else:
-                print("Unknown option selected\n")
+
+        if selection.isdigit():
+            if 1 <= int(selection) <= (len(menu)):
+                return(menu.get(selection))
+        elif selection == "":
+            break
+
+        print("Unknown option selected\n")
 
 
 def system_menu():
