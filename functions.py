@@ -110,6 +110,7 @@ def list_builds(service):
     # region [Google Drive]
     elif service == "Google Drive":
         build_list = []
+        build_id_list = []
 
         drive = login.googledrive_login()
         upload_folder_id = login.get_folder_id()
@@ -117,13 +118,15 @@ def list_builds(service):
         file_list = drive.ListFile({'q': f"'{upload_folder_id}' in parents and trashed=false"}).GetList()
 
         for file in file_list:
-            _file = file["title"]
-            _filename, _file_extension = os.path.splitext(_file)
+            file_title = file["title"]
+            file_id = file["id"]
+            _filename, _file_extension = os.path.splitext(file_title)
             if _file_extension == ".zip":
-                build_list.append(_file)
+                build_list.append(file_title)
+                build_id_list.append(file_id)
 
         menus.create_build_menu(build_list)
-        return(build_list)
+        return(build_list, build_id_list)
     # endregion
 
 
@@ -179,7 +182,8 @@ def download(service):
     # endregion
     # region [Google Drive]
     elif service == "Google Drive":
-        build_list = list_builds(service)
+        build_list, build_id_list = list_builds(service)
+        drive = login.googledrive_login()
         while True:
             print("Press Enter to go back")
             selection = input("Please Select: ")
@@ -187,9 +191,11 @@ def download(service):
             if selection.isdigit():
                 if 1 <= int(selection) <= (len(build_list)):
                     build = build_list[int(selection) - 1]
+                    build_id = build_id_list[int(selection) - 1]
                     clear()
                     try:
-                        # TODO: Download from Google Drive
+                        file = drive.CreateFile({'id': build_id})
+                        file.GetContentFile(f"{config.get_folder('builds')}/{build}")
                         print(f"Downloaded {build} from {service}\n")
                         break
                     except:
@@ -360,7 +366,8 @@ def delete(service):
     # endregion
     # region [Google Drive]
     elif service == "Google Drive":
-        build_list = list_builds(service)
+        build_list, build_id_list = list_builds(service)
+        drive = login.googledrive_login()
         while True:
             print("Press Enter to go back")
             selection = input("Please Select: ")
@@ -368,9 +375,11 @@ def delete(service):
             if selection.isdigit():
                 if 1 <= int(selection) <= (len(build_list)):
                     build = build_list[int(selection) - 1]
+                    build_id = build_id_list[int(selection) - 1]
                     clear()
                     try:
-                        # TODO: Delete from Google Drive
+                        file = drive.CreateFile({'id': build_id})
+                        file.Trash()
                         print(f"Deleted {build} from {service}\n")
                         break
                     except:

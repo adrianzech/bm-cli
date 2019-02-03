@@ -81,21 +81,18 @@ def ftp():
             print("Invalid input. Please use [/ - . A-Z a-z 0-9]\n")
 
         message = login.ftp_login()
-        print(message)
 
+        functions.clear()
         if message == "host_error":
-            functions.clear()
             print("Failed to reach host\n")
         elif message == "login_error":
-            functions.clear()
             print("Failed to login\n")
         elif message == "folder_error":
-            functions.clear()
             print("Path does not exist\n")
         else:
             config.set_value("ftp", "enabled", "true")
             config.write_config()
-            functions.clear()
+
             print("Successfully logged in\n")
             break
 
@@ -107,6 +104,8 @@ def dropbox():
         functions.clear()
         try:
             login.dropbox_login()
+            config.set_value("ftp", "enabled", "true")
+            config.write_config()
             print("Successfully logged in\n")
             break
         except:
