@@ -83,7 +83,7 @@ def list_builds(service):
         build_list = []
         file_list = []
 
-        login.ftp_login().retrlines("NLST ", file_list.append)
+        login.ftp.retrlines("NLST ", file_list.append)
 
         for file in file_list:
             _filename, _file_extension = os.path.splitext(file)
@@ -97,7 +97,7 @@ def list_builds(service):
     elif service == "Dropbox":
         build_list = []
 
-        metadata = login.dropbox_login().files_list_folder(path="")
+        metadata = login.db.files_list_folder("")
 
         for file in metadata.entries:
             _filename, _file_extension = os.path.splitext(file.name)
@@ -112,10 +112,7 @@ def list_builds(service):
         build_list = []
         build_id_list = []
 
-        drive = login.googledrive_login()
-        upload_folder_id = login.get_folder_id()
-
-        file_list = drive.ListFile({'q': f"'{upload_folder_id}' in parents and trashed=false"}).GetList()
+        file_list = login.drive.ListFile({'q': f"'{login.upload_folder_id}' in parents and trashed=false"}).GetList()
 
         for file in file_list:
             file_title = file["title"]
@@ -134,7 +131,6 @@ def download(service):
     print(f"Download build from {service}\n")
     # region [FTP]
     if service == "FTP":
-        ftp = login.ftp_login()
         while True:
             build_list = list_builds(service)
             print("Press Enter to go back")
@@ -145,7 +141,7 @@ def download(service):
                     build = build_list[int(selection) - 1]
                     clear()
                     try:
-                        ftp.retrbinary("STOR " + build, open(f"{config.get_folder('builds')}/{build}", "wb").write)
+                        login.ftp.retrbinary("RETR " + build, open(f"{config.get_folder('builds')}/{build}", "wb").write)
                         print(f"Downloaded {build} from {service}\n")
                         break
                     except:
@@ -159,7 +155,6 @@ def download(service):
     # endregion
     # region [Dropbox]
     elif service == "Dropbox":
-        db = login.dropbox_login()
         while True:
             build_list = list_builds(service)
             print("Press Enter to go back")
@@ -170,7 +165,7 @@ def download(service):
                     build = build_list[int(selection) - 1]
                     clear()
                     try:
-                        db.files_download_to_file(f"{config.get_folder('builds')}/{build}", "/" + build)
+                        login.db.files_download_to_file(f"{config.get_folder('builds')}/{build}", "/" + build)
                         print(f"Downloaded {build} from {service}\n")
                         break
                     except:
@@ -184,7 +179,6 @@ def download(service):
     # endregion
     # region [Google Drive]
     elif service == "Google Drive":
-        drive = login.googledrive_login()
         while True:
             build_list, build_id_list = list_builds(service)
             print("Press Enter to go back")
@@ -196,7 +190,7 @@ def download(service):
                     build_id = build_id_list[int(selection) - 1]
                     clear()
                     try:
-                        file = drive.CreateFile({'id': build_id})
+                        file = login.drive.CreateFile({'id': build_id})
                         file.GetContentFile(f"{config.get_folder('builds')}/{build}")
                         print(f"Downloaded {build} from {service}\n")
                         break
@@ -215,7 +209,6 @@ def upload(service):
     print(f"Upload build to {service}\n")
     # region [FTP]
     if service == "FTP":
-        ftp = login.ftp_login()
         while True:
             build_list = list_builds("Local")
             print("Press Enter to go back")
@@ -226,7 +219,7 @@ def upload(service):
                     build = build_list[int(selection) - 1]
                     clear()
                     try:
-                        ftp.storbinary("STOR " + build, open(f"{config.get_folder('builds')}/{build}", "rb"))
+                        login.ftp.storbinary("STOR " + build, open(f"{config.get_folder('builds')}/{build}", "rb"))
                         print(f"Uploaded {build} to {service}\n")
                         break
                     except:
@@ -240,7 +233,6 @@ def upload(service):
     # endregion
     # region [Dropbox]
     elif service == "Dropbox":
-        db = login.dropbox_login()
         while True:
             build_list = list_builds("Local")
             print("Press Enter to go back")
@@ -252,7 +244,7 @@ def upload(service):
                     clear()
                     try:
                         file = open(f"{config.get_folder('builds')}/{build}", "rb")
-                        db.files_upload(file.read(), f"/{build}")
+                        login.db.files_upload(file.read(), f"/{build}")
                         file.close()
                         print(f"Uploaded {build} to {service}\n")
                         break
@@ -267,8 +259,6 @@ def upload(service):
     # endregion
     # region [Google Drive]
     elif service == "Google Drive":
-        drive = login.googledrive_login()
-        upload_folder_id = login.get_folder_id()
         while True:
             build_list = list_builds("Local")
             print("Press Enter to go back")
@@ -279,7 +269,7 @@ def upload(service):
                     build = build_list[int(selection) - 1]
                     clear()
                     try:
-                        file = drive.CreateFile(metadata={"title": build, "parents": [{"kind": "drive#fileLink", "id": upload_folder_id}]})
+                        file = login.drive.CreateFile(metadata={"title": build, "parents": [{"kind": "drive#fileLink", "id": login.upload_folder_id}]})
                         file.SetContentFile(f"{config.get_folder('builds')}/{build}")
                         file.Upload()
                         print(f"Uploaded {build} to {service}\n")
@@ -323,7 +313,6 @@ def delete(service):
     # endregion
     # region [FTP]
     elif service == "FTP":
-        ftp = login.ftp_login()
         while True:
             build_list = list_builds(service)
             print("Press Enter to go back")
@@ -334,7 +323,7 @@ def delete(service):
                     build = build_list[int(selection) - 1]
                     clear()
                     try:
-                        ftp.delete(build)
+                        login.ftp.delete(build)
                         print(f"Deleted {build} from {service}\n")
                         break
                     except:
@@ -348,7 +337,6 @@ def delete(service):
     # endregion
     # region [Dropbox]
     elif service == "Dropbox":
-        db = login.dropbox_login()
         while True:
             build_list = list_builds(service)
             print("Press Enter to go back")
@@ -359,7 +347,7 @@ def delete(service):
                     build = build_list[int(selection) - 1]
                     clear()
                     try:
-                        db.files_delete("/" + build)
+                        login.db.files_delete("/" + build)
                         print(f"Deleted {build} from {service}\n")
                         break
                     except:
@@ -372,7 +360,6 @@ def delete(service):
     # endregion
     # region [Google Drive]
     elif service == "Google Drive":
-        drive = login.googledrive_login()
         while True:
             build_list, build_id_list = list_builds(service)
             print("Press Enter to go back")
@@ -384,7 +371,7 @@ def delete(service):
                     build_id = build_id_list[int(selection) - 1]
                     clear()
                     try:
-                        file = drive.CreateFile({'id': build_id})
+                        file = login.drive.CreateFile({'id': build_id})
                         file.Trash()
                         print(f"Deleted {build} from {service}\n")
                         break

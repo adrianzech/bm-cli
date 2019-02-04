@@ -74,7 +74,7 @@ def ftp():
                 config.set_value("ftp", "path", "/")
                 break
             elif (valid_path.match(path)):
-                config.set_value("frp", "path", path)
+                config.set_value("ftp", "path", path)
                 break
 
             functions.clear()
@@ -87,8 +87,6 @@ def ftp():
             print("Failed to reach host\n")
         elif message == "login_error":
             print("Failed to login\n")
-        elif message == "folder_error":
-            print("Path does not exist\n")
         else:
             config.set_value("ftp", "enabled", "true")
             config.write_config()
