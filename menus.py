@@ -8,58 +8,58 @@ import login
 
 def start_menu():
     menu = {}
+    menu_items = [
+        "Exit",
+        "Create Build",
+        "Restore Build",
+        "List Builds",
+        "Download Build",
+        "Upload Build",
+        "Delete Builds",
+        "Settings"
+    ]
 
-    menu["1"] = "Create Build"
-    menu["2"] = "Restore Build"
-    menu["3"] = "List Builds"
-    menu["4"] = "Download Build"
-    menu["5"] = "Upload Build"
-    menu["6"] = "Delete Builds"
-    menu["7"] = "Settings"
-    menu["0"] = "Exit"
+    for i in range(len(menu_items)):
+        menu[f"{i}"] = menu_items[i]
 
-    while True:
-        print("Build Manager\n")
-        for entry in menu:
-            print(f"[{entry}]:", menu[entry])
+    # while True:
+    print("Build Manager\n")
+    for entry in menu:
+        print(f"[{entry}]:", menu[entry])
 
-        selection = input("\nPlease Select: ")
+    selection = input("\nPlease Select: ")
 
-        functions.clear()
-        if selection == "1":
-            functions.create_build()
-        if selection == "2":
-            functions.restore_build()
-        elif selection == "3":
-            service = service_menu("local")
-            if not service == None:
-                functions.list_builds(service)
-        elif selection == "4":
-            service = service_menu("online")
-            if not service == None:
-                functions.download(service)
-        elif selection == "5":
-            service = service_menu("online")
-            if not service == None:
-                functions.upload(service)
-        elif selection == "6":
-            service = service_menu("local")
-            if not service == None:
-                functions.delete(service)
-        elif selection == "7":
-            settings_menu()
+    functions.clear()
+    if selection.isdigit():
+        if 1 <= int(selection) <= 7:
+            switcher = {
+                1: lambda: functions.create_build(),
+                2: lambda: functions.restore_build(),
+                3: lambda: functions.list_builds(service_menu("local")),
+                4: lambda: functions.download(service_menu("online")),
+                5: lambda: functions.upload(service_menu("online")),
+                6: lambda: functions.delete(service_menu("local")),
+                7: lambda: settings_menu()
+            }
+            func = switcher.get(int(selection), lambda: "Unknown option selected\n")
+            return func()
         elif selection == "0":
             functions.clear()
             sys.exit()
-        else:
-            print("Unknown option selected\n")
+
+    print("Unknown option selected\n")
 
 
 def service_menu(menu_type):
     menu = {}
-
-    local = ["Local"]
     online = []
+    local = ["Local"]
+    setup = [
+        "Local",
+        "FTP",
+        "Dropbox",
+        "Google Drive"
+    ]
 
     if config.get_value("ftp", "enabled") == "true":
         local.append("FTP")
@@ -78,9 +78,8 @@ def service_menu(menu_type):
         for i in range(len(online)):
             menu[f"{i + 1}"] = online[i]
     elif menu_type == "setup":
-        menu["1"] = "FTP"
-        menu["2"] = "Dropbox"
-        menu["3"] = "Google Drive"
+        for i in range(len(setup)):
+            menu[f"{i + 1}"] = setup[i]
 
     while True:
         print("Service Menu\n")
@@ -103,10 +102,14 @@ def service_menu(menu_type):
 
 def system_menu():
     menu = {}
+    menu_items = [
+        "Linux",
+        "Windows",
+        "MacOS"
+    ]
 
-    menu["1"] = "Linux"
-    menu["2"] = "Windows"
-    menu["3"] = "MacOS"
+    for i in range(len(menu_items)):
+        menu[f"{i + 1}"] = menu_items[i]
 
     while True:
         print("Service Menu\n")
@@ -126,11 +129,15 @@ def system_menu():
 
 def settings_menu():
     menu = {}
+    menu_items = [
+        "Folder Settings",
+        "FTP Settings",
+        "Dropbox Settings",
+        "Google Drive Settings"
+    ]
 
-    menu["1"] = "Folder Settings"
-    menu["2"] = "FTP Settings"
-    menu["3"] = "Dropbox Settings"
-    menu["4"] = "Google Drive Settings"
+    for i in range(len(menu_items)):
+        menu[f"{i + 1}"] = menu_items[i]
 
     while True:
         print("Settings Menu\n")
@@ -141,20 +148,20 @@ def settings_menu():
         selection = input("Please Select: ")
 
         functions.clear()
-        print("Unknown option selected\n")
-
-        if selection == "1":
-            setup.folders()
-        elif selection == "2":
-            setup.ftp()
-        elif selection == "3":
-            setup.dropbox()
-        elif selection == "4":
-            setup.googledrive()
+        if selection.isdigit():
+            if 1 <= int(selection) <= 4:
+                switcher = {
+                    1: lambda: setup.folders(),
+                    2: lambda: setup.ftp(),
+                    3: lambda: setup.dropbox(),
+                    4: lambda: setup.googledrive()
+                }
+                func = switcher.get(int(selection), lambda: "Unknown option selected\n")
+                return func()
         elif selection == "":
             break
-        else:
-            print("Unknown option selected\n")
+
+        print("Unknown option selected\n")
 
 
 def create_build_menu(build_list):

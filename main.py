@@ -10,4 +10,5 @@ config.check_config()
 config.check_folders()
 config.check_services()
 
-menus.start_menu()
+while True:
+    menus.start_menu()

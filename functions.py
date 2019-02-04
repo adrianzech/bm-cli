@@ -454,6 +454,7 @@ def restore_build():
                     selection = input("Are you sure you want to restore the build? (y, n): ")
                     if selection in ("y", "Y"):
                         extract_build(build)
+                        break
                     elif selection in ("n", "N"):
                         clear()
                         return
