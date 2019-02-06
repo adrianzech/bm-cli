@@ -83,8 +83,8 @@ def service_menu(menu_type):
 
     while True:
         print("Service Menu\n")
-        for i, entry in enumerate(menu):
-            print(f"[{i + 1}]:", menu[entry])
+        for entry in menu:
+            print(f"[{int(entry)}]:", menu[entry])
 
         print("\nPress Enter to go back")
         selection = input("Please Select: ")

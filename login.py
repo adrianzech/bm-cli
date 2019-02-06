@@ -63,20 +63,10 @@ def dropbox_login():
 
 
 def googledrive_login():
-    global drive
-    global upload_folder_id
-    gauth = GoogleAuth()
+    global drive, upload_folder_id
+    gauth = GoogleAuth("config/gdrive.yaml")
 
     gauth.DEFAULT_SETTINGS['client_config_file'] = "config/client_secrets.json"
-
-    gauth.LoadCredentialsFile("config/credentials")
-    if gauth.credentials is None:
-        gauth.LocalWebserverAuth()
-    elif gauth.access_token_expired:
-        gauth.Refresh()
-    else:
-        gauth.Authorize()
-    gauth.SaveCredentialsFile("config/credentials")
 
     drive = GoogleDrive(gauth)
 
